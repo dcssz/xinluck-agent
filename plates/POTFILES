@@ -1,0 +1,16 @@
+./adjust_quota_manager.php
+./banner_manager.php
+./cus_bank_info_manager.php
+./cus_grade_manager.php
+./cus_info_manager.php
+./cus_mark_manager.php
+./home.php
+./index.php
+./login.php
+./marquee_manager.php
+./news_editor.php
+./news_manager.php
+./online_cus_manager.php
+./register_manager.php
+./site_msg_manager.php
+./sys_service_set_manager.php

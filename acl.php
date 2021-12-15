@@ -1,0 +1,118 @@
+<?php
+$allRoles = array('guest', 'customer', 'agent','admin');
+$adminRoles = array('admin');
+
+return [
+	'default_role' => 'guest',
+	'roles' => [
+		'guest' => [],
+		'admin' => [],
+		'customer' => [],
+		'agent' => [],
+	],
+	'resources' => [
+	],
+	'guards' => [
+		'routes' => [
+			['/[index]', $allRoles, ['get']],
+			['/agent[/index]', $allRoles, ['get']],
+			['/agent', $allRoles, ['get']],
+			['/agent/home', $allRoles, ['get']],
+			['/agent/news', $allRoles, ['get']],
+			['/agent/list_news', $allRoles, ['get', 'post']],
+			['/agent/marquee', $allRoles, ['get']],
+			['/agent/site_message', $allRoles, ['get']],
+			['/agent/banner', $allRoles, ['get']],
+			['/agent/register', $allRoles, ['get']],
+			['/agent/save_register', $allRoles, ['get', 'post']],
+			['/agent/sys_service', $allRoles, ['get']],
+			['/agent/sys_service_save', $allRoles, ['get', 'post']],
+			['/agent/customer_info', $allRoles, ['get']],
+			['/agent/customer_bank_info', $allRoles, ['get']],
+			['/agent/customer_grade', $allRoles, ['get']],
+			['/agent/customer_mark', $allRoles, ['get']],
+			['/agent/adjust_quota', $allRoles, ['get']],
+			['/agent/online_customer', $allRoles, ['get']],
+			['/agent/online_cus_op', $allRoles, ['get']],
+			['/agent/news_editor', $allRoles, ['get', 'post']],
+			['/agent/save_news', $allRoles, ['get', 'post']],
+			['/agent/delete_news', $allRoles, ['get', 'post']],
+			['/agent/login', $allRoles, ['get']],
+			['/logout', $allRoles, ['get']],
+			['/agent/login_check', $allRoles, ['post']],
+			//代理管理
+			['/agent/agent_info_manager', $allRoles, ['get']],
+			['/agent/effect_cus_rule_manager', $allRoles, ['get']],
+			['/agent/list_effect_cus_rules', $allRoles, ['get']],
+			['/agent/effect_cus_rule_editor', $allRoles, ['post']],
+			['/agent/save_effect_cus_rule', $allRoles, ['post']],
+			['/agent/commission_rule_manager', $allRoles, ['get']],
+			['/agent/retreat_rule_manager', $allRoles, ['get']],
+			['/agent/extra_commission_rule_manager', $allRoles, ['get']],
+			['/agent/period_manager', $allRoles, ['get']],
+			['/agent/period_audit_manager', $allRoles, ['get']],
+			//遊戲管理
+			['/agent/game_store_info_manager', $allRoles, ['get']],
+			['/agent/list_game_stores', $allRoles, ['get']],
+			['/agent/change_game_store_status', $allRoles, ['post']],
+			['/agent/game_store_editor', $allRoles, ['post']],
+			['/agent/save_game_store', $allRoles, ['post']],
+
+			['/agent/game_category_info_manager', $allRoles, ['get']],
+			['/agent/list_games', $allRoles, ['get']],
+			['/agent/change_game_status', $allRoles, ['post']],
+			['/agent/game_editor', $allRoles, ['post']],
+			['/agent/save_game', $allRoles, ['post']],
+
+			['/agent/game_mark_manager', $allRoles, ['get']],
+			['/agent/list_game_marks', $allRoles, ['get']],
+			['/agent/game_mark_editor', $allRoles, ['post']],
+			['/agent/save_game_mark', $allRoles, ['post']],
+
+			['/agent/game_category_gain_manager', $allRoles, ['get']],
+			//金流設定
+			['/agent/payment_pattern_manager', $allRoles, ['get']],
+			['/agent/sys_payment_manager', $allRoles, ['get']],
+			['/agent/payment_merchant_manager', $allRoles, ['get']],
+			['/agent/payment_company_manager', $allRoles, ['get']],
+			//金流管理
+			['/agent/merchant_deposit_orders_manager', $allRoles, ['get']],
+			['/agent/company_deposit_orders_manager', $allRoles, ['get']],
+			['/agent/mem_withdraw_orders_manager', $allRoles, ['get']],
+			['/agent/agent_withdraw_orders_manager', $allRoles, ['get']],
+			['/agent/manual_payment_manager', $allRoles, ['get']],
+			['/agent/cus_withdraw_audit_manager', $allRoles, ['get']],
+			//優惠管理
+			['/agent/discount_category_manager', $allRoles, ['get']],
+			['/agent/discount_manager', $allRoles, ['get']],
+			['/agent/cus_discount_audit_manager', $allRoles, ['get']],
+			['/agent/cus_discount_apply_manager', $allRoles, ['get']],
+			['/agent/cus_retreat_set_manager', $allRoles, ['get']],
+			['/agent/cus_retreat_audit_manager', $allRoles, ['get']],
+			//報表管理
+			['/agent/cus_wd_quota_log_manager', $allRoles, ['get']],
+			['/agent/cus_quota_log_manager', $allRoles, ['get']],
+			['/agent/agent_quota_log_manager', $allRoles, ['get']],
+			['/agent/all_calc_report_manager', $allRoles, ['get']],
+			['/agent/game_report_manager', $allRoles, ['get']],
+			['/agent/cus_instant_bet_info_manager', $allRoles, ['get']],
+			['/agent/cus_bet_info_manager', $allRoles, ['get']],
+			['/agent/cus_report_manager', $allRoles, ['get']],
+			['/agent/agent_report_manager', $allRoles, ['get']],
+			['/agent/change_order_logs_manager', $allRoles, ['get']],
+			//系統管理
+			['/agent/cus_ip_manager', $allRoles, ['get']],
+			['/agent/employee_manager', $allRoles, ['get']],
+			['/agent/sys_func_set_manager', $allRoles, ['get']],
+			
+			
+			['/agent/personal_info', $allRoles, ['get']],
+			['/agent/cus_info_manager', $allRoles, ['get']],
+			['/agent/sub_customer_manager', $allRoles, ['get']],
+			['/agent/cus_bank_info', $allRoles, ['get']],
+			['/agent/cus_withdraw', $allRoles, ['get']],
+			['/agent/online_cus_manager', $allRoles, ['get']],
+			['/agent/self_quota_log_manager', $allRoles, ['get']],
+		],
+	],
+];

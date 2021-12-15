@@ -1,0 +1,1 @@
+{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"$(\"#merchant-deposit-total\").text(0);$(\"#company-deposit-total\").text(0);$(\"#mem-withdraw-total\").text(0);$(\"#agent-withdraw-total\").text(0);$(\"#change-order-logs-total\").text(0);$(\"#cus-bank-ver-total\").text(0);$(\"#cus-identity-ver-total\").text(0);"}]}}

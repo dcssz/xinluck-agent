@@ -1,0 +1,119 @@
+.main-content{
+	background-color: #FFF;
+	padding:10px;
+	font-size: 24px;
+}
+
+.main-content .cus-bank-info-list-tb{
+	width:100%;
+}
+
+.main-content .cus-bank-info-list-tb td{
+	/*padding: .15rem .12rem;*/
+	padding: 15px 12px;
+	vertical-align: middle;
+	white-space: nowrap;
+	/*font-size: .3rem;*/
+	border-bottom:1px solid #ccc;
+}
+
+.main-content .cus-bank-info-list-tb .show-detail-btn{
+	background-color: #e99c3d;
+	/*padding:.1rem;*/
+	padding: 10px;
+	/*border-radius: .1rem;*/
+    border-radius: 25px !important;
+	color:#fff;
+	cursor: pointer;
+}
+
+.main-content .add-btn{
+	background: linear-gradient(to right, #dccab8, #d2b496);
+	font-weight:bold;
+	width:100%;
+	padding:10px 0px;
+	text-align: center;
+	/*margin-top:.2rem;*/
+	margin-top: 10px;
+	cursor: pointer;
+	color:#fff;
+	/*border-radius: .1rem;*/
+    border-radius: 25px !important;
+	/*font-size: .3rem;*/
+}
+
+#edit-cus-bank-info-area{
+	display: none;
+	padding: 10px;
+	font-size: 24px;
+}
+
+#edit-cus-bank-info-area .cus-bank-info-editor-tb{
+	width:100%;
+}
+
+#edit-cus-bank-info-area .cus-bank-info-editor-tb td{
+	/*padding: .15rem .12rem;*/
+	padding: 15px 12px;
+	vertical-align: middle;
+	/*font-size: .3rem;*/
+}
+
+#edit-cus-bank-info-area .cus-bank-info-editor-tb td.title{
+	font-weight:bold;
+}
+
+#edit-cus-bank-info-area .cus-bank-info-editor-tb .select-v1{
+	border: 1px solid #ccc;
+    /*border-radius: .1rem;*/
+    border-radius: 25px !important;
+    /*font-size: .3rem;*/
+	/*padding: .05rem .08rem;*/
+	padding: 5px 10px;
+}
+
+#edit-cus-bank-info-area .cus-bank-info-editor-tb .input-v1{
+	border: 1px solid #ccc;
+    /*border-radius: .1rem;*/
+    border-radius: 25px !important;
+    /*font-size: .3rem;*/
+    width: 80%;
+	/*padding: .05rem .08rem;*/
+	padding: 5px 10px;
+}
+
+#edit-cus-bank-info-area .save-btn{
+	background: linear-gradient(to right, #dccab8, #d2b496);
+	font-weight:bold;
+	width:100%;
+	padding:10px 0px;
+	text-align: center;
+	margin-top:.2rem;
+	cursor: pointer;
+	color:#fff;
+	/*border-radius: .1rem;*/
+    border-radius: 25px !important;
+	/*font-size: .3rem;*/
+}
+
+#show-cus-bank-info-detail-area{
+	display: none;
+	padding: 10px;
+	font-size: 24px;
+}
+
+#show-cus-bank-info-detail-area .cus-bank-info-detail-tb{
+	width:100%;
+}
+
+#show-cus-bank-info-detail-area .cus-bank-info-detail-tb td{
+	/*padding: .15rem .12rem;*/
+	padding: 15px 12px;
+	vertical-align: middle;
+	/*font-size: .3rem;*/
+	border:1px solid #ccc;
+}
+
+#show-cus-bank-info-detail-area .cus-bank-info-detail-tb td.title{
+	font-weight:bold;
+}
