@@ -137,7 +137,127 @@ th
     <input type="hidden" id="edit-unique-code" name="edit_unique_code" value="3" />
 </div>
 <div id="editor-item-div" style="display: none;">
-	
+    <form id="editor-item-form">
+        <table class="table editor-table table-bordered">
+            <thead>
+                <tr>
+                    <th class="title" id="editor-item-form-title" colspan="100%">編輯</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>規則名稱</td>
+                    <td><input type="text" id="extra-commission-rule-name" name="extra_commission_rule_name" value=""></td>
+                </tr>
+                <tr>
+                    <td colspan="100%">
+                        <div class="is-div-title">
+                            總輸贏規則條件設定&nbsp;
+                            <a href="javascript:void(0);" onclick="add_param_item();" class="btn btn-xs default"> <i class="fa fa-pencil"></i> 新增 </a>
+                        </div>
+                        <div class="nowrap">
+                            <table class="table station-param-tb table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>區間(總代底下所有代理總輸贏負盈利)</th>
+                                        <th>退佣</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr item_list_index="add-item" style="display:none;">
+                                        <td>
+                                            <input type="text" value="0" field="lower_limit">&nbsp;~&nbsp;
+                                            <input type="text" value="0" field="upper_limit">
+                                        </td>
+                                        <td>
+                                            <table class="table editor-table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $item) {?>
+                                                            <th colspan="<?=count($item->gameStores)?>"><?= $item->name?></th>
+                                                        <?php }?>
+                                                        <!--th colspan="3">體育</th>
+                                                        <th colspan="2">彩票</th>
+                                                        <th colspan="5">真人</th>
+                                                        <th colspan="4">電子</th>
+                                                        <th colspan="2">棋牌</th>
+                                                        <th colspan="1">電競</th-->
+                                                    </tr>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $type) {?>
+                                                            <?php foreach ($type->gameStores as $store) {?>
+                                                            <th><?= $store->name?></th>
+                                                            <?php }?>
+                                                        <?php }?>
+                                                        <!--th>協和體育</th>
+                                                        <th>Super體育</th>
+                                                        <th>SXB體育</th>
+                                                        <th>大立彩票</th>
+                                                        <th>轉轉樂</th>
+                                                        <th>歐博真人</th>
+                                                        <th>沙龍真人</th>
+                                                        <th>WM真人</th>
+                                                        <th>皇家真人</th>
+                                                        <th>DG真人</th>
+                                                        <th>ZG電子</th>
+                                                        <th>皇家電子</th>
+                                                        <th>BNG電子</th>
+                                                        <th>VA電子</th>
+                                                        <th>BTS棋牌</th>
+                                                        <th>BL棋牌</th>
+                                                        <th>TF電競</th-->
+                                                    </tr>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $type) {?>
+                                                            <?php foreach ($type->gameStores as $store) {?>
+                                                                <td>
+                                                                    <input type="text" size="1" value="" field="<?= $store->id?>_extra_commission">&nbsp;%
+                                                                </td>
+                                                            <?php }?>
+                                                        <?php }?>
+                                                        <!--td><input type="text" size="1" value="0" field="1_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="34_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="37_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="21_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="27_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="8_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="9_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="11_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="31_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="36_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="24_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="26_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="32_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="33_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="16_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="19_extra_commission">&nbsp;%</td>
+                                                        <td><input type="text" size="1" value="0" field="20_extra_commission">&nbsp;%</td-->
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                        <td>
+                                            <a href="javascript:void(0);" onclick="delete_param_item(this);" class="btn btn-xs default"> <i class="fa fa-pencil"></i> 刪除 </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>狀態</td>
+                    <td>是否啟用<input type="checkbox" id="extra-commission-rule-status" name="status" value="1" ></td>
+                </tr>
+                <tr align="right">
+                    <td colspan="100%"><button type="button" class="btn red" onclick="close_layer({type: 1});">取消</button><button type="button" class="btn green" onclick="save_extra_commission_rule();">儲存</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <input type="hidden" id="etype" value="edit">
+        <input type="hidden" id="edit-extra-commission-rule-id" value="">
+    </form>
 </div>
 
 </div>

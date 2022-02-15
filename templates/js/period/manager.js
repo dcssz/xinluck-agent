@@ -31,7 +31,8 @@ var TableDatatablesAjax = function () {
                 ],
                 "pageLength": 100, // default record count per page
                 "ajax": {
-                    "url": "/op/period_manager_op.php?pdisplay=display_manager_list&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
+                    "type": "get",
+                    "url": "/admin/list_periods?pdisplay=display_manager_list&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
                 },
 				 "bSort": false,
                 /*"order": [
@@ -86,12 +87,12 @@ $(function(){
 	initPickers();
 	
 	$(".search-btn").click(function(){
-		grid.getDataTable().ajax.url("/op/period_manager_op.php?pdisplay=display_manager_list&search_period_name=" + $("input[name=search_period_name]").val() + "&search_ckout_type=" + $("select[name=search_ckout_type]").val() + "&search_ckout_item=" + $("select[name=search_ckout_item]").val() + "&sddate=" + $("input[name=sddate]").val() + "&eddate=" + $("input[name=eddate]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
+		grid.getDataTable().ajax.url("/admin/list_periods?pdisplay=display_manager_list&search_period_name=" + $("input[name=search_period_name]").val() + "&search_ckout_type=" + $("select[name=search_ckout_type]").val() + "&search_ckout_item=" + $("select[name=search_ckout_item]").val() + "&sddate=" + $("input[name=sddate]").val() + "&eddate=" + $("input[name=eddate]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
 	});
 });
 
 function add_period(){
 	var edit_unique_code = $("#edit-unique-code").val();
-	location.href = "period_editor.php?etype=add&edit_unique_code=" + edit_unique_code;
+	location.href = "/admin/period_editor?etype=add&edit_unique_code=" + edit_unique_code;
 }
 

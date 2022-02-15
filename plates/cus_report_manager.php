@@ -59,7 +59,7 @@ td
 	padding: 3px 12px !important;
 }
 </style>
-<form id="report-form" class="form-horizontal" role="form" method="GET" action="cus_report_manager.php">
+<form id="report-form" class="form-horizontal" role="form" method="GET" action="cus_report_manager">
 	<div class="page-bar">
 		<div class="act-group hidden">
 			<button class="btn green-sharp btn-large " onclick="parent.goIframeHistoryBack(this, event);"> <i class="fa fa-mail-reply"></i> <font class="">回上頁</font> </button>
@@ -75,8 +75,8 @@ td
 		<div class="act-group">
 			<div class="date-div">
 				<div>日期區間</div>&nbsp;
-				<div class="input-group input-small date date-picker sddate" data-date="2021-10-23" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-start-date" name="sddate" value="2021-10-23" readonly>
+				<div class="input-group input-small date date-picker sddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-start-date" name="sddate" value="<?=date('Y-m-d')?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -84,8 +84,8 @@ td
 					</span>
 				</div>
 				<div class="sign">~</div>
-				<div class="input-group input-small date date-picker eddate" data-date="2021-10-23" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-end-date" name="eddate" value="2021-10-23" readonly>
+				<div class="input-group input-small date date-picker eddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=date('Y-m-d')?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -104,7 +104,7 @@ td
 		</div>
 		<div class="act-group">
 			<span>帳號</span>&nbsp;
-			<input type="text" size="8" name="search_customer_userid" value="">
+			<input type="text" size="8" name="search_customer_userid" value="<?=$search_customer_userid?>">
 		</div>
 		<div class="act-group">
 			<span>排序</span>&nbsp;
@@ -133,12 +133,12 @@ td
 	<div class="search-detail-div">
 		<div class="detail-bar date-pick-div">
 			<span>快選日期</span>&nbsp;
-			<button type="button" class="btn red btn_yesterday btn-md" today-date="2021-10-23">昨日</button>
-			<button type="button" class="btn red btn_today btn-md" today-date="2021-10-23">今日</button>
-			<button type="button" class="btn red btn_lastweek btn-md" today-date="2021-10-23">上週</button>	
-			<button type="button" class="btn red btn_thisweek btn-md" today-date="2021-10-23">本周</button>
-			<button type="button" class="btn red btn_lastmonth btn-md" today-date="2021-10-23">上月</button>
-			<button type="button" class="btn red btn_thismonth btn-md" today-date="2021-10-23">本月</button>
+			<button type="button" class="btn red btn_yesterday btn-md" today-date="<?=date('Y-m-d')?>">昨日</button>
+			<button type="button" class="btn red btn_today btn-md" today-date="<?=date('Y-m-d')?>">今日</button>
+			<button type="button" class="btn red btn_lastweek btn-md" today-date="<?=date('Y-m-d')?>">上週</button>	
+			<button type="button" class="btn red btn_thisweek btn-md" today-date="<?=date('Y-m-d')?>">本周</button>
+			<button type="button" class="btn red btn_lastmonth btn-md" today-date="<?=date('Y-m-d')?>">上月</button>
+			<button type="button" class="btn red btn_thismonth btn-md" today-date="<?=date('Y-m-d')?>">本月</button>
 		</div>
 		<div class="detail-bar">
 			
@@ -159,7 +159,8 @@ td
 			<table class="table table-striped table-bordered table-hover order-column">
 				<thead>
 					<tr class="bg-green1 color-white">
-						<th>帳號</th><th>上層帳號</th>
+						<th>帳號</th>
+						<th>上層帳號</th>
 						<th>總投注筆數</th>
 						<th>總投注金額</th>
 						<th>總有效投注</th>
@@ -168,7 +169,21 @@ td
 					</tr>
 				</thead>
 				<tbody>
-					
+					<?php
+					foreach($summarys as $bet){
+					?> 
+					<tr>
+						<td><?=$bet->user->username?></td>
+						<td><?=$bet->upper?></td>
+						<td><a href="/admin/cus_bet_info_manager"><?=$bet->Cnt?></a></td>
+						<td><?=$bet->totalAmount?></td>
+						<td><?=$bet->totalValidAmount?></td>
+						<td><?=$bet->totalWinlose?></td>
+						<td><?=$bet->killRate?>%</td>
+					</tr>
+					<?php
+					}
+					?>
 				</tbody>
 			 </table>
 		</div>

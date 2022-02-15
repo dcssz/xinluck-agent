@@ -84,8 +84,8 @@ td
 		<div class="act-group">
 			<div class="date-div">
 				<div>期數日期</div>&nbsp;
-				<div class="input-group input-small date date-picker sddate" data-date="2021-10-22" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-start-date" name="sddate" value="2021-10-22" readonly>
+				<div class="input-group input-small date date-picker sddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-start-date" name="sddate" value="<?=date('Y-m-d')?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -93,8 +93,8 @@ td
 					</span>
 				</div>
 				<div class="sign">~</div>
-				<div class="input-group input-small date date-picker eddate" data-date="2021-10-22" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-end-date" name="eddate" value="2021-10-22" readonly>
+				<div class="input-group input-small date date-picker eddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=date('Y-m-d')?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -116,12 +116,12 @@ td
 	<div class="search-detail-div">
 		<div class="detail-bar date-pick-div">
 			<span>快選日期</span>&nbsp;
-			<button type="button" class="btn red btn_yesterday btn-md" today-date="2021-10-23">昨日</button>
-			<button type="button" class="btn red btn_today btn-md" today-date="2021-10-23">今日</button>
-			<button type="button" class="btn red btn_lastweek btn-md" today-date="2021-10-23">上週</button>	
-			<button type="button" class="btn red btn_thisweek btn-md" today-date="2021-10-23">本周</button>
-			<button type="button" class="btn red btn_lastmonth btn-md" today-date="2021-10-23">上月</button>
-			<button type="button" class="btn red btn_thismonth btn-md" today-date="2021-10-23">本月</button>
+			<button type="button" class="btn red btn_yesterday btn-md" today-date="<?=date('Y-m-d')?>">昨日</button>
+			<button type="button" class="btn red btn_today btn-md" today-date="<?=date('Y-m-d')?>">今日</button>
+			<button type="button" class="btn red btn_lastweek btn-md" today-date="<?=date('Y-m-d')?>">上週</button>	
+			<button type="button" class="btn red btn_thisweek btn-md" today-date="<?=date('Y-m-d')?>">本周</button>
+			<button type="button" class="btn red btn_lastmonth btn-md" today-date="<?=date('Y-m-d')?>">上月</button>
+			<button type="button" class="btn red btn_thismonth btn-md" today-date="<?=date('Y-m-d')?>">本月</button>
 		</div>
 		<div class="detail-bar">
 			

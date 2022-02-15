@@ -56,8 +56,12 @@ $(function(){
 		
 		//location.href = "cus_instant_bet_info_manager.php?sddate=" + sddate + "&eddate=" + eddate + "&search_date_type=" + search_date_type + "&search_customer_userid=" + search_customer_userid + "&search_level=" + search_level + "&search_game_store=" + search_game_store + "&search_game_category=" + search_game_category + "&search_is_finished=" + search_is_finished + "&search_order_no=" + search_order_no + "&page_now=" + page_now;
 		//var param = "search_customer_userid=" + search_customer_userid + "&search_level=" + search_level + "&search_game_store=" + search_game_store + "&search_game_category=" + search_game_category + "&search_is_finished=" + search_is_finished + "&search_bet_amount=" + search_bet_amount + "&search_win_amount=" + search_win_amount + "&page_now=" + page_now;
-		requestJSON("cus_instant_bet_info_op.php", "pdisplay=request_bet_info_table_div", "", "#report-form");
+		//requestJSON("cus_instant_bet_info_op.php", "pdisplay=request_bet_info_table_div", "", "#report-form");
+		$('#report-form').submit();
 	});
+
+	$("#change-timer-select").val($('#timer').val());
+	change_countdown_timer();
 });
 
 function data_reload_second_countdown(){
@@ -75,13 +79,14 @@ function data_reload_second_countdown(){
 
 function change_countdown_timer(){
 	clearInterval(countdownid);
-	$(".search-btn").click();
+	//$(".search-btn").click();
 	var time_val = $("#change-timer-select").val();
+	$('#timer').val(time_val);
 	if(time_val == -1){
 		countdown_timer = change_lang_txt({"org_txt" : "不更新"});
 	}else{
 		countdown_timer = time_val;
-		countdownid = window.setInterval(data_reload_second_countdown, 1000);//每1000毫秒调用一次函数
+		countdownid = window.setInterval(data_reload_second_countdown, 10000);//每1000毫秒调用一次函数
 	}
 	$("#countdown-timer").text(countdown_timer);
 }
@@ -111,13 +116,13 @@ function datetime_picker_init() {
 
 function change_game_store(){
 	var edit_game_store = $("select[name=search_game_store]").val();
-	requestJSON("cus_instant_bet_info_op.php", "pdisplay=change_game_store", "edit_game_store=" + edit_game_store);
+	requestJSON("/agent/cus_instant_bet_info_op", "pdisplay=change_game_store", "edit_game_store=" + edit_game_store);
 }
 
 function show_order_content_detail(e){
 	var game_store = $(e).attr("game_store");
 	var order_id = $(e).attr("order_id");
-	requestJSON("cus_instant_bet_info_op.php", "pdisplay=show_order_content_detail", "game_store=" + game_store + "&order_id=" + order_id, "");
+	requestJSON("/agent/cus_instant_bet_info_op", "pdisplay=show_order_content_detail", "game_store=" + game_store + "&order_id=" + order_id, "");
 }
 
 function select_page(select_page){

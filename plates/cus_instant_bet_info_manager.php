@@ -59,8 +59,17 @@ td
 #report-form{
 	display:inline;
 }
+.align-right{
+	text-align:right !important;
+}
+.page-div{
+	display:inline-block;
+	background-color:#ff5;
+	padding:0px 10px;
+	line-height: 40px;
+}
 </style>
-<form id="report-form" class="form-horizontal" role="form" method="GET" action="cus_instant_bet_info_manager.php">
+<form id="report-form" class="form-horizontal" role="form" method="GET" action="cus_instant_bet_info_manager">
 	<div class="page-bar">
 		<div class="act-group hidden">
 			<button class="btn green-sharp btn-large " onclick="parent.goIframeHistoryBack(this, event);"> <i class="fa fa-mail-reply"></i> <font class="">回上頁</font> </button>
@@ -83,7 +92,7 @@ td
 		</div>
 		<div class="act-group">
 			<span>帳號</span>&nbsp;
-			<input type="text" size="8" name="search_customer_userid" value="">
+			<input type="text" size="8" name="search_customer_userid" value="<?=$search_customer_userid?>">
 		</div>
 		<div class="act-group">
 			<span>廠商名稱</span>&nbsp;
@@ -156,6 +165,8 @@ td
 		</div>
 	</div>
 	<input type="hidden" id="page-now" name="page_now" value="" >
+	<input type="hidden"  name="start" value="0" >
+	<input type="hidden" id="timer" name="timer" value="<?=$timer?>" >
 </form>	
 <div class="portlet light bordered">
 	<div class="portlet-title">
@@ -205,16 +216,59 @@ td
                 </tr>
             </thead>
             <tbody>
-                <tr class="all-total-tr"><td class="align-r">總計</td><td colspan="6" class="align-r">0筆</td><td>0</td><td>0</td><td class="green-txt">0</td></tr><tr class="total-tr"><td class="align-r">小計</td><td colspan="6" class="align-r">筆</td><td>0</td><td>0</td><td class="green-txt">0</td></tr>
+				<?php
+					foreach($bets as $bet){
+					?> 
+					<tr>
+						<td><?=$bet->order_no?></td>
+						<td><?=$bet->game_username?></td>
+						<td><?=$bet->game_username?></td>
+						<td><?=$bet->game->name?></td>
+						<td>未结算</td>
+						<td><?=$bet->game->name?></td>
+						<td><?=$bet->bet_time?></td>
+						<td><?=$bet->amount?></td>
+						<td><?=$bet->valid_amount?></td>
+						<td><?=$bet->winlose?></td>
+					</tr>
+					<?php
+					}
+					?>
+                <tr class="all-total-tr">
+						<td class="align-r">總計</td>
+						<td colspan="6" class="align-r"><?=$summarys->Cnt?>筆</td>
+						<td><?=$summarys->totalAmount?></td>
+						<td><?=$summarys->totalValidAmount?></td>
+						<td class="green-txt"><?=$summarys->totalWinlose?></td>
+					</tr>
+					<tr class="total-tr">
+						<td class="align-r">小計</td>
+						<td colspan="6" class="align-r"><?=$page_summarys->Cnt?>筆</td>
+						<td><?=$page_summarys->totalAmount?></td>
+						<td><?=$page_summarys->totalValidAmount?></td>
+						<td class="green-txt"><?=$page_summarys->totalWinlose?></td>
+					</tr>
             </tbody>
          </table>
     </div>
 </div>
-<div class="align-right">
-    <div class="page-div hidden"><!--slot=0-->
-第<select onchange="select_page(this.value)"></select>頁﹐共0頁
-</div>
-</div>
+	<div class="align-right">
+		<div class="page-div "><!--slot=0-->
+		第<select onchange="select_page(this.value)">
+			<?php
+				for($i=1;$i<=$totalPages;$i++){
+					if (($i-1)*$pageSize == $start) {
+						echo '<option value="'.($i-1)*$pageSize.'" selected="selected">'.$i.'</option>';
+
+					} else {
+						echo '<option value="'.($i-1)*$pageSize.'">'.$i.'</option>';
+
+					}
+				}
+			?>
+		</select>頁﹐共<?=$totalPages?>頁
+		</div>
+	</div>
 
     </div>
 </div>
@@ -256,6 +310,12 @@ td
 		<script src="/templates/js/kang_all.js?cache=203"></script>
 		<script src="/templates/js/lang/tw.js?cache=203"></script>
         <script src="/templates/js/cus_instant_bet_info/manager.js?cache=136" type="text/javascript"></script>
-
+		<script>
+			function select_page (i){
+				$('input[name="start"]').val(i);
+				
+				$('#report-form').submit();
+			}
+		</script>
     </body>
 </html>

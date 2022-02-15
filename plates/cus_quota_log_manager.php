@@ -63,8 +63,8 @@ th
 		<div class="act-group">
 			<div class="date-div">
 				<div>日期區間</div>&nbsp;
-				<div class="input-group input-small date date-picker sddate" data-date="2021-10-16" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-start-date" name="search_start_date" value="2021-10-16" readonly>
+				<div class="input-group input-small date date-picker sddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-start-date" name="search_start_date" value="<?=date('Y-m-d')?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -72,7 +72,7 @@ th
 					</span>
 				</div>
 				<div class="input-group input-small search-time">
-					<input type="text" id="search-start-time" name="search_start_time" value="20:32:20" class="form-control timepicker timepicker-24" readonly>
+					<input type="text" id="search-start-time" name="search_start_time" value="00:00:00" class="form-control timepicker timepicker-24" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 							<i class="fa fa-clock-o"></i>
@@ -80,8 +80,8 @@ th
 					</span>
 				</div>
 				<div class="sign">~</div>
-				<div class="input-group input-small date date-picker eddate" data-date="2021-10-30" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-end-date" name="search_end_date" value="2021-10-30" readonly>
+				<div class="input-group input-small date date-picker eddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-end-date" name="search_end_date" value="<?=date('Y-m-d')?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -89,7 +89,7 @@ th
 					</span>
 				</div>
 				<div class="input-group input-small search-time">
-					<input type="text" id="search-end-time" name="search_end_time" value="20:32:20" class="form-control timepicker timepicker-24" readonly>
+					<input type="text" id="search-end-time" name="search_end_time" value="23:59:59" class="form-control timepicker timepicker-24" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 							<i class="fa fa-clock-o"></i>
@@ -100,7 +100,7 @@ th
 		</div>
 		<div class="act-group">
 			<span>帳號</span>&nbsp;
-			<input type="text" name="search_customer_userid" value="">
+			<input type="text" name="search_customer_userid" value="<?=$search_customer_userid?>">
 		</div>
 		<div class="act-group">
 			<span>模糊搜尋<input type="checkbox" name="fuzzy_search" value="1" /></span>
@@ -148,12 +148,12 @@ th
 	<div class="search-detail-div">
 		<div class="detail-bar date-pick-div">
 			<span>快選日期</span>&nbsp;
-			<button type="button" class="btn red btn_yesterday btn-md" today-date="2021-10-23">昨日</button>
-			<button type="button" class="btn red btn_today btn-md" today-date="2021-10-23">今日</button>
-			<button type="button" class="btn red btn_lastweek btn-md" today-date="2021-10-23">上週</button>	
-			<button type="button" class="btn red btn_thisweek btn-md" today-date="2021-10-23">本周</button>
-			<button type="button" class="btn red btn_lastmonth btn-md" today-date="2021-10-23">上月</button>
-			<button type="button" class="btn red btn_thismonth btn-md" today-date="2021-10-23">本月</button>
+			<button type="button" class="btn red btn_yesterday btn-md" today-date="<?=date('Y-m-d')?>">昨日</button>
+			<button type="button" class="btn red btn_today btn-md" today-date="<?=date('Y-m-d')?>">今日</button>
+			<button type="button" class="btn red btn_lastweek btn-md" today-date="<?=date('Y-m-d')?>">上週</button>	
+			<button type="button" class="btn red btn_thisweek btn-md" today-date="<?=date('Y-m-d')?>">本周</button>
+			<button type="button" class="btn red btn_lastmonth btn-md" today-date="<?=date('Y-m-d')?>">上月</button>
+			<button type="button" class="btn red btn_thismonth btn-md" today-date="<?=date('Y-m-d')?>">本月</button>
 		</div>
 		<div class="detail-bar">
 			
@@ -165,6 +165,7 @@ th
 		<div class="caption">
 			<i class="fa fa-group font-green-sharp"></i>
 			<span class="caption-subject font-green-sharp bold uppercase">報表管理 - 會員資金明細報表</span>
+			<span id="title-info-content">總異動額度：<span id="all-trans-quota" class="title-class">0</span></span>
 		</div>
 	</div>
     

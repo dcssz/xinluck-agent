@@ -31,7 +31,8 @@ var TableDatatablesAjax = function () {
                 ],
                 "pageLength": 100, // default record count per page
                 "ajax": {
-                    "url": "/op/employee_manager_op.php?pdisplay=display_manager_list", // ajax source
+					'type':'GET',
+                    "url": "/admin/employee_manager_op?pdisplay=display_manager_list", // ajax source
                 },
 				 "bSort": false,
                 /*"order": [
@@ -77,11 +78,11 @@ $(function(){
     TableDatatablesAjax.init();
 	
 	$(".search-btn").click(function(){
-		grid.getDataTable().ajax.url("/op/employee_manager_op.php?pdisplay=display_manager_list").load();
+		grid.getDataTable().ajax.url("/admin/employee_manager_op?pdisplay=display_manager_list").load();
 	});
 });
 
 function add_employee(){
-	location.href = "employee_editor.php?etype=add";
+	location.href = "employee_editor?etype=add";
 }
 

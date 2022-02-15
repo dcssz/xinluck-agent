@@ -1,0 +1,77 @@
+# Chinese translations for PACKAGE package
+# PACKAGE 软件包的简体中文翻译.
+# Copyright (C) 2021 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# root <root@60-249-108-168.hinet-ip.hinet.net>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-10-15 16:10+0800\n"
+"PO-Revision-Date: 2021-10-15 16:10+0800\n"
+"Last-Translator: root <root@60-249-108-168.hinet-ip.hinet.net>\n"
+"Language-Team: Chinese (simplified)\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: home.php:106
+msgid "首頁"
+msgstr "Home"
+
+msgid "前台設定"
+msgstr "Setting"
+msgid "公告管理"
+msgstr "News"
+msgid "跑馬燈管理"
+msgstr "Marquee"
+msgid "站內信管理"
+msgstr "Message"
+msgid "輪播圖管理"
+msgstr "Rotation"
+msgid "註冊管理"
+msgstr "Register"
+msgid "客服設定"
+msgstr "Services"
+
+msgid "會員管理"
+msgstr "Member"
+msgid "會員設定"
+msgstr "Setting"
+msgid "會員銀行卡審核"
+msgstr "BankCard"
+msgid "等級設定"
+msgstr "Level"
+msgid "標籤設定"
+msgstr "Label"
+msgid "資金調度"
+msgstr "Fund"
+msgid "在線會員查詢"
+msgstr "Online"
+
+msgid "代理管理"
+msgstr "Agent"
+msgid "遊戲管理"
+msgstr "Game"
+msgid "金流設定"
+msgstr "FundSetting"
+msgid "金流管理"
+msgstr "FundManage"
+msgid "優惠管理"
+msgstr "Discount"
+msgid "報表管理"
+msgstr "Report"
+msgid "系統管理"
+msgstr "System"
+msgid "登出"
+msgstr "Logout"
+ 
+#: login.php:12
+msgid "控端登入"
+msgstr "Login"
+
+#: login.php:19
+msgid "帳號"
+msgstr "Account"

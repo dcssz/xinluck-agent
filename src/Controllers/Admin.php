@@ -6,10 +6,25 @@ use stdClass;
 use Interop\Container\ContainerInterface;
 use App\Extensions\AdminBase;
 use App\Extensions\Functions;
+use App\Extensions\Language;
 use App\Models\News as NewsModel;
+use App\Models\Marquees as MarqueesModel;
+use App\Models\SiteMessage as SiteMessageModel;
 use App\Models\Config as ConfigModel;
 use App\Models\Register as RegisterModel;
 use App\Models\User as User;
+use App\Models\Bet;
+use App\Models\UserMoney;
+use App\Models\Menu;
+use App\Models\SystemNotice;
+use App\Models\UserBank;
+use App\Models\Banner;
+use App\Models\BannerLocal;
+use App\Models\Payment;
+use App\Models\DiscountCategory;
+use App\Models\Discount;
+use App\Models\DiscountLocal;
+use App\Models\WithdrawAudit;
 class Admin extends AdminBase
 {
 	public function __Construct(ContainerInterface $container)
@@ -19,7 +34,10 @@ class Admin extends AdminBase
 
 	public function index($request, $response, $args)
     {
-		
+		if(!isset($_SESSION['id'])){
+			header("Location:/agent/login");
+			return;
+		}
         return $this->view->render('index');
 	}
 
@@ -206,6 +224,18 @@ class Admin extends AdminBase
 
 	public function login($request, $response)
     {
+		 
+		 $_SESSION = array();
+		 /***删除sessin id.由于session默认是基于cookie的，所以使用setcookie删除包含session id的cookie.***/
+		 if (isset($_COOKIE[session_name()])) {
+			setcookie(session_name(), '', time()-42000, '/');
+		 }
+		unset($_SESSION['menus']);
+		unset($_SESSION['id']);
+		unset($_SESSION['username']);
+		unset($_SESSION['nickname']);
+		unset($_SESSION['role']);
+		session_destroy();
         return $this->view->render('login');
 	}
 	
@@ -315,12 +345,88 @@ class Admin extends AdminBase
 
 	public function cusWdQuotaLogManager($request, $response)
     {
-        return $this->view->render('cus_wd_quota_log_manager');
+		$get = $request->getQueryParams();
+		$type = isset($get['type']) ? $get['type'] : 1;
+		$search_trans_type = isset($get['search_trans_type']) ? $get['search_trans_type'] : -1;
+		$search_customer_userid = isset($get['search_customer_userid']) ? $get['search_customer_userid'] : '';
+		$fuzzy_search = isset($get['fuzzy_search']) ? $get['fuzzy_search'] : 0;
+
+		$where = array();
+		$where[] = array('operate_type', $type);
+		if ($search_trans_type != -1) {
+			$where[] = array('trans_type', $search_trans_type);
+		}
+		
+		if ($search_customer_userid) {
+			if ($fuzzy_search) {
+				$where[] = array('username', 'like', '%'.$search_customer_userid.'%');
+			} else {
+				$where[] = array('username', $search_customer_userid);
+			}
+		}
+
+		$sddate = date('Y-m-d');
+		$eddate = date('Y-m-d');
+		if(isset($get['sddate'])){
+			$sddate = $get['sddate'];
+		}
+		$where[] = array('created_at','>=',$sddate.' 00:00');
+		if(isset($get['eddate'])){
+			$eddate = $get['eddate'];
+		}
+		$where[] = array('created_at','<=',$eddate.' 23:59');
+		$trans_type = [3,4];
+		
+		$start = 0;
+		if(isset($get['start']))
+			$start = intval($get['start']);
+		
+		$length = 10;
+		if(isset($get['length']))
+			$length = intval($get['length']);
+			
+		$summarys = UserMoney::where($where)->whereIn('trans_type',[3,4])->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		$totalRows = UserMoney::where($where)->whereIn('trans_type',[3,4])->count();
+		$totalPages = ceil($totalRows / $length);
+		
+		//统计所有
+		$totalMoney =  UserMoney::where($where)->whereIn('trans_type',[3,4])->sum('money');
+		$totalFee =  UserMoney::where($where)->whereIn('trans_type',[3,4])->sum('fee');
+		$totalReal = $totalMoney - $totalFee;
+		//页面统计
+		$pageMoney =  $summarys->sum('money');
+		$pageFee =  $summarys->sum('fee');
+		$pageReal = $pageMoney - $pageFee;
+		
+        return $this->view->render('cus_wd_quota_log_manager',[
+			'sddate'=>$sddate,
+			'eddate'=>$eddate,
+			'summarys'=>$summarys,
+			'totalRows'=>$totalRows,
+			'totalPages'=>$totalPages,
+			'pageSize'=>$length,
+			'start' => $start,
+			'type' => $type,
+			'search_trans_type' => $search_trans_type,
+			'search_customer_userid' => $search_customer_userid,
+			'fuzzy_search' => $fuzzy_search,
+			'totalFee' => $totalFee,
+			'totalMoney' => $totalMoney,
+			'totalReal' => $totalReal,
+			'pageMoney' => $pageMoney,
+			'pageFee' => $pageFee,
+			'pageReal' => $pageReal,
+		]);
 	}
 
 	public function cusQuotaLogManager($request, $response)
     {
-        return $this->view->render('cus_quota_log_manager');
+		$get = $request->getQueryParams();
+		$search_customer_userid = isset($get['search_customer_userid']) ? $get['search_customer_userid'] : '';
+
+        return $this->view->render('cus_quota_log_manager', [
+			'search_customer_userid' => $search_customer_userid
+		]);
 	}
 
 	public function agentQuotaLogManager($request, $response)
@@ -330,27 +436,338 @@ class Admin extends AdminBase
 
 	public function allCalcReportManager($request, $response)
     {
-        return $this->view->render('all_calc_report_manager');
+		$get = $request->getQueryParams();
+		$where = array();
+		$where[] = array('flag',1);
+		$dateTimeColumn = 'bet_time';
+		if(isset($get['search_date_type'])){
+			$search_date_type = $get['search_date_type'];
+			if($search_date_type == '1') 
+				$dateTimeColumn = 'bet_time';
+			elseif($search_date_type == '2') 
+				$dateTimeColumn = 'draw_time';
+			elseif($search_date_type == '3') 
+				$dateTimeColumn = 'bet_time';
+		}
+		$sddate = date('Y-m-d');
+		$eddate = date('Y-m-d');
+		if(isset($get['sddate'])){
+			$sddate = $get['sddate'];
+			$where[] = array($dateTimeColumn,'>=',$sddate.' 00:00');
+		}
+		if(isset($get['eddate'])){
+			$eddate = $get['eddate'];
+			$where[] = array($dateTimeColumn,'<=',$eddate.' 23:59');
+		}
+		//if(isset($get['search_customer_userid']))
+		//	$where[] = array('game_username','like','%'.$get['search_customer_userid'].'%');
+		$summarys = Bet::with('game')->select(
+			DB::raw("DATE_FORMAT({$dateTimeColumn},'%Y-%m-%d') as calDay"),
+			DB::raw('count(id) as Cnt'),
+			DB::raw('SUM(Amount) as totalAmount'),
+			DB::raw('SUM(valid_Amount) as totalValidAmount'),
+			DB::raw('SUM(winlose) as totalWinlose')
+		)->where($where)->groupBy('calDay')->orderBy('id', 'desc')->get();
+		
+		$allTotal = new \stdClass;
+		$allTotal->totalAmount = 0;
+		$allTotal->totalValidAmount = 0;
+		$allTotal->totalWinlose = 0;
+		$allTotal->Cnt = 0;
+		foreach($summarys as $summary){
+			//$summary->killRate = number_format(1 - $summary->loseCnt /   $summary->Cnt ,2) * 100;
+			$allTotal->totalAmount += $summary->totalAmount;
+			$allTotal->totalValidAmount += $summary->totalValidAmount;
+			$allTotal->totalWinlose += $summary->totalWinlose;
+			$allTotal->Cnt += $summary->Cnt;
+			 
+		}
+		//echo json_encode($summarys);
+        return $this->view->render('all_calc_report_manager',[
+			'sddate'=>$sddate,
+			'eddate'=>$eddate,
+			'summarys'=>$summarys,'allTotal'=>$allTotal
+		]);
 	}
-
+	public function allCalcAgentReportManager($request, $response)
+    {
+		$get = $request->getQueryParams();
+		$where = array();
+		$where[] = array('flag',1);
+		$dateTimeColumn = 'bet_time';
+		if(isset($get['search_date_type'])){
+			$search_date_type = $get['search_date_type'];
+			if($search_date_type == '1') 
+				$dateTimeColumn = 'bet_time';
+			elseif($search_date_type == '2') 
+				$dateTimeColumn = 'draw_time';
+			elseif($search_date_type == '3') 
+				$dateTimeColumn = 'bet_time';
+		}
+		$sddate = date('Y-m-d');
+		$eddate = date('Y-m-d');
+		if(isset($get['sddate'])){
+			$sddate = $get['sddate'];
+			$where[] = array($dateTimeColumn,'>=',$sddate.' 00:00');
+		}
+		if(isset($get['eddate'])){
+			$eddate = $get['eddate'];
+			$where[] = array($dateTimeColumn,'<=',$eddate.' 23:59');
+		}
+		
+		$summarys = Bet::with('user')->select(
+			'user_id',
+			DB::raw("DATE_FORMAT({$dateTimeColumn},'%Y-%m-%d') as calDay"),
+			DB::raw('count(id) as Cnt'),
+			DB::raw('SUM(Amount) as totalAmount'),
+			DB::raw('SUM(valid_Amount) as totalValidAmount'),
+			DB::raw('SUM(winlose) as totalWinlose')
+		)->where($where)->groupBy('user_id')->orderBy('id', 'desc')->get();
+		
+		$allTotal = new \stdClass;
+		$allTotal->totalAmount = 0;
+		$allTotal->totalValidAmount = 0;
+		$allTotal->totalWinlose = 0;
+		$allTotal->Cnt = 0;
+		foreach($summarys as $summary){
+			//$summary->killRate = number_format(1 - $summary->loseCnt /   $summary->Cnt ,2) * 100;
+			$allTotal->totalAmount += $summary->totalAmount;
+			$allTotal->totalValidAmount += $summary->totalValidAmount;
+			$allTotal->totalWinlose += $summary->totalWinlose;
+			$allTotal->Cnt += $summary->Cnt;
+			 
+		}
+		
+		//echo json_encode($summarys);
+		
+        return $this->view->render('all_calc_agent_report_manager',[
+			'sddate'=>$sddate,
+			'eddate'=>$eddate,
+			'summarys'=>$summarys,
+			'allTotal'=>$allTotal
+		]);
+	}
 	public function gameReportManager($request, $response)
     {
-        return $this->view->render('game_report_manager');
+		$get = $request->getQueryParams();
+		$where = array();
+		$where[] = array('flag',1);
+		$search_date_type = 'bet_time';
+		if(isset($get['search_date_type'])){
+			$search_date_type = $get['search_date_type'];
+			if($search_date_type == '1') 
+				$dateTimeColumn = 'bet_time';
+			elseif($search_date_type == '2') 
+				$dateTimeColumn = 'draw_time';
+			elseif($search_date_type == '3') 
+				$dateTimeColumn = 'bet_time';
+		}
+		if(isset($get['sddate']))
+			$where[] = array($dateTimeColumn,'>=',$get['sddate'].' 00:00');
+		if(isset($get['eddate']))
+			$where[] = array($dateTimeColumn,'<=',$get['eddate'].' 23:59');
+		//if(isset($get['search_customer_userid']))
+		//	$where[] = array('game_username','like','%'.$get['search_customer_userid'].'%');
+		$summarys = Bet::with('game')->select(
+			'game_id',  
+			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
+			DB::raw('count(id) as Cnt'),
+			DB::raw('SUM(Amount) as totalAmount'),
+			DB::raw('SUM(valid_Amount) as totalValidAmount'),
+			DB::raw('SUM(winlose) as totalWinlose')
+		)->where($where)->groupBy('game_id')->get();
+		
+		 
+		foreach($summarys as $summary){
+			$summary->killRate = number_format(1 - $summary->loseCnt /   $summary->Cnt ,2) * 100;
+		}
+		
+		//echo json_encode($summarys);
+        return $this->view->render('game_report_manager',['summarys'=>$summarys]);
 	}
+
 
 	public function cusInstantBetInfoManager($request, $response)
     {
-        return $this->view->render('cus_instant_bet_info_manager');
+		$get = $request->getQueryParams();
+		$search_customer_userid = isset($get['search_customer_userid']) ? $get['search_customer_userid'] : '';
+
+		$where = array();
+		if ($search_customer_userid) {
+			$user_search = User::where('username', $search_customer_userid)->first();
+			if ($user_search) {
+				$where[] = array('user_id', $user_search->id);
+			}
+		}
+
+		//$where[] = array('created_at','>=','2021-12-01 00:00:00');
+		$where[] = array('flag',0);
+
+		$start = 0;
+		if(isset($get['start']))
+			$start = intval($get['start']);
+		
+		$length = 10;
+		if(isset($get['length']))
+			$length = intval($get['length']);
+		
+		$bets = Bet::with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		$totalRows = Bet::with('game')->where($where)->count();
+		$totalPages = ceil($totalRows / $length);
+
+		$summarys = Bet::select(
+			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
+			DB::raw('count(id) as Cnt'),
+			DB::raw('SUM(Amount) as totalAmount'),
+			DB::raw('SUM(valid_Amount) as totalValidAmount'),
+			DB::raw('SUM(winlose) as totalWinlose')
+		)->where($where)->first();
+
+		$page_summarys = new stdClass();
+		$page_summarys->Cnt = $bets->count();
+		$page_summarys->totalAmount = $bets->sum('amount');
+		$page_summarys->totalValidAmount = $bets->sum('valid_amount');
+		$page_summarys->totalWinlose = $bets->sum('winlose');
+		 
+        return $this->view->render('cus_instant_bet_info_manager',[
+			'totalRows'=>$totalRows,
+			'totalPages'=>$totalPages,
+			'pageSize'=>$length,
+			'start' => $start,
+			'bets'=>$bets,
+			'search_customer_userid'=>$search_customer_userid,
+			'summarys'=>$summarys,
+			'page_summarys'=>$page_summarys,
+			'timer' => isset($get['timer']) ? $get['timer'] : -1
+		]);
 	}
 
 	public function cusBetInfoManager($request, $response)
     {
-        return $this->view->render('cus_bet_info_manager');
+		$get = $request->getQueryParams();
+		$where = array();
+		 
+		$where[] = array('flag',1);
+		
+		$search_date_type = 'bet_time';
+		$dateTimeColumn = 'bet_time';
+		if(isset($get['search_date_type'])){
+			$search_date_type = $get['search_date_type'];
+			if($search_date_type == '1') 
+				$dateTimeColumn = 'bet_time';
+			elseif($search_date_type == '2') 
+				$dateTimeColumn = 'draw_time';
+			elseif($search_date_type == '3') 
+				$dateTimeColumn = 'bet_time';
+		}
+		if (isset($get['search_customer_userid']) && $get['search_customer_userid'] != '') {
+			$u = User::where('username', $get['search_customer_userid'])->where('role', 'customer')->first();
+			$where[] = array('user_id', $u['id']);
+		}
+		$sddate = date('Y-m-d');
+		$eddate = date('Y-m-d');
+		if(isset($get['sddate'])){
+			$sddate = $get['sddate'];
+		}
+		$where[] = array($dateTimeColumn,'>=',$sddate.' 00:00');
+		if(isset($get['eddate'])){
+			$eddate = $get['eddate'];
+		}
+		$where[] = array($dateTimeColumn,'<=',$eddate.' 23:59');
+
+		$start = 0;
+		if(isset($get['start']))
+			$start = intval($get['start']);
+		
+		$length = 10;
+		if(isset($get['length']))
+			$length = intval($get['length']);
+		
+		$bets = Bet::with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		$totalRows = Bet::with('game')->where($where)->count();
+		$totalPages = ceil($totalRows / $length);
+		
+		$summarys = Bet::select(
+			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
+			DB::raw('count(id) as Cnt'),
+			DB::raw('SUM(Amount) as totalAmount'),
+			DB::raw('SUM(valid_Amount) as totalValidAmount'),
+			DB::raw('SUM(winlose) as totalWinlose')
+		)->where($where)->first();
+
+		$page_summarys = new stdClass();
+		$page_summarys->Cnt = $bets->count();
+		$page_summarys->totalAmount = $bets->sum('amount');
+		$page_summarys->totalValidAmount = $bets->sum('valid_amount');
+		$page_summarys->totalWinlose = $bets->sum('winlose');
+		 
+        return $this->view->render('cus_bet_info_manager',[
+			'sddate'=>$sddate,
+			'eddate'=>$eddate,
+			'totalRows'=>$totalRows,
+			'totalPages'=>$totalPages,
+			'pageSize'=>$length,
+			'start' => $start,
+			'bets'=>$bets,
+			'summarys'=>$summarys,
+			'page_summarys'=>$page_summarys,
+			'search_customer_userid' => isset($get['search_customer_userid'])?$get['search_customer_userid']:''
+		]);
 	}
 
 	public function cusReportManager($request, $response)
     {
-        return $this->view->render('cus_report_manager');
+		$get = $request->getQueryParams();
+		$search_customer_userid = isset($get['search_customer_userid']) ? $get['search_customer_userid'] : '';
+		
+		$where = array();
+		if ($search_customer_userid) {
+			$user_search = User::where('username', $search_customer_userid)->first();
+			if ($user_search) {
+				$where[] = array('user_id', $user_search->id);
+			}
+		}
+
+		$where[] = array('flag',1);
+		$search_date_type = 'bet_time';
+		if(isset($get['search_date_type'])){
+			$search_date_type = $get['search_date_type'];
+			if($search_date_type == '1') 
+				$dateTimeColumn = 'bet_time';
+			elseif($search_date_type == '2') 
+				$dateTimeColumn = 'draw_time';
+			elseif($search_date_type == '3') 
+				$dateTimeColumn = 'bet_time';
+		}
+		if(isset($get['sddate']))
+			$where[] = array($dateTimeColumn,'>=',$get['sddate'].' 00:00');
+		if(isset($get['eddate']))
+			$where[] = array($dateTimeColumn,'<=',$get['eddate'].' 23:59');
+
+		$summarys = Bet::with(['user'=>function($query) use ($search_customer_userid){
+				return $query->with('upper');
+			}])->select(
+			'user_id',  
+			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
+			DB::raw('count(id) as Cnt'),
+			DB::raw('SUM(Amount) as totalAmount'),
+			DB::raw('SUM(valid_Amount) as totalValidAmount'),
+			DB::raw('SUM(winlose) as totalWinlose')
+		)->where($where)->groupBy('user_id')->get();
+		
+		 
+		foreach($summarys as $summary){
+			if($summary->user->upper == null)
+				$summary->upper = '--';
+			else
+				$summary->upper = $summary->user->upper->username;
+			$summary->killRate = number_format(1 - $summary->loseCnt /   $summary->Cnt ,2) * 100;
+		}
+		//echo json_encode($summarys);
+        return $this->view->render('cus_report_manager',[
+			'summarys'=>$summarys,
+			'search_customer_userid'=>$search_customer_userid
+		]);
 	}
 
 	public function agentReportManager($request, $response)

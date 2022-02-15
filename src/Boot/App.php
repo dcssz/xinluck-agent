@@ -63,7 +63,9 @@ class App extends \Slim\App {
             $this->post('/agent/login_check', \App\Controllers\Admin::class . ':loginCheck');
 			//代理管理
 			$this->get('/agent/agent_info_manager', \App\Controllers\Admin\Agent::class . ':agentInfoManager');
-
+			$this->get('/agent/list_agent_infos', \App\Controllers\Admin\Agent::class . ':listAgentInfos');
+			$this->get('/agent/agent_info_editor', \App\Controllers\Admin\Agent::class . ':agentInfoEditor');
+			$this->post('/agent/save_agent_info', \App\Controllers\Admin\Agent::class . ':saveAgentInfo');
 			$this->get('/agent/effect_cus_rule_manager', \App\Controllers\Admin\Agent::class . ':effectCusRuleManager');
 			$this->get('/agent/list_effect_cus_rules', \App\Controllers\Admin\Agent::class . ':listEffectCusRules');
 			$this->post('/agent/effect_cus_rule_editor', \App\Controllers\Admin\Agent::class . ':effectCusRulesEditor');
@@ -115,11 +117,15 @@ class App extends \Slim\App {
 			//報表管理
 			$this->get('/agent/cus_wd_quota_log_manager', \App\Controllers\Admin::class . ':cusWdQuotaLogManager');
 			$this->get('/agent/cus_quota_log_manager', \App\Controllers\Admin::class . ':cusQuotaLogManager');
+			$this->any('/agent/cus_quota_log_op', \App\Controllers\Admin\Report::class . ':cusQuotaLog');
 			$this->get('/agent/agent_quota_log_manager', \App\Controllers\Admin::class . ':agentQuotaLogManager');
+			$this->any('/agent/agent_quota_log_op', \App\Controllers\Admin\Report::class . ':agentQuotaLog');
 			$this->get('/agent/all_calc_report_manager', \App\Controllers\Admin::class . ':allCalcReportManager');
+			$this->get('/agent/all_calc_agent_report_manager', \App\Controllers\Admin::class . ':allCalcAgentReportManager');
 			$this->get('/agent/game_report_manager', \App\Controllers\Admin::class . ':gameReportManager');
 			$this->get('/agent/cus_instant_bet_info_manager', \App\Controllers\Admin::class . ':cusInstantBetInfoManager');
 			$this->get('/agent/cus_bet_info_manager', \App\Controllers\Admin::class . ':cusBetInfoManager');
+			$this->any('/agent/cus_bet_info', \App\Controllers\Admin::class . ':cusBetInfo');
 			$this->get('/agent/cus_report_manager', \App\Controllers\Admin::class . ':cusReportManager');
 			$this->get('/agent/agent_report_manager', \App\Controllers\Admin::class . ':agentReportManager');
 			$this->get('/agent/change_order_logs_manager', \App\Controllers\Admin::class . ':changeOrderLogsManager');

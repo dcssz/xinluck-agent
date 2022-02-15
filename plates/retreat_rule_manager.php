@@ -138,7 +138,160 @@ th
     <input type="hidden" id="edit-unique-code" name="edit_unique_code" value="3" />
 </div>
 <div id="editor-item-div" style="display: none;">
-	
+    <form id="editor-item-form">
+        <table class="table editor-table table-bordered">
+            <thead>
+                <tr>
+                    <th class="title" id="editor-item-form-title" colspan="100%">編輯</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>規則名稱</td>
+                    <td><input type="text" id="retreat-rule-name" name="retreat_rule_name" value=""></td>
+                </tr>
+                <tr>
+				<td>有效會員規則</td>
+				<td>
+					<select name="effect_cus_rule_id" id="effect_cus_rule_id">
+						<option value="-1">請選擇</option>
+						<!--slot=1-->
+                        <?php foreach ($effectCusRules as $item) {?>
+                            <option value="<?= $item->id ?>"> <?= $item->name?></option>
+                        <?php }?>
+
+					</select>
+				</td>
+			</tr>
+                <tr>
+                    <td colspan="100%">
+                        <div class="is-div-title">
+                            退水規則條件設定&nbsp;
+                            <a href="javascript:void(0);" onclick="add_param_item();" class="btn btn-xs default"> <i class="fa fa-pencil"></i> 新增 </a>
+                        </div>
+                        <div class="nowrap">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>條件名稱</th>
+                                        <th>廠商</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="v-align-middle">
+                                            <div>無需被計算區間(會員有效投注額)</div>
+                                            <div class="red-txt">※被勾選之廠商，有效投注額不計算區間且不計算退水%數</div>
+                                        </td>
+                                        <td>
+                                            <table class="table editor-table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $item) {?>
+                                                            <th colspan="<?=count($item->gameStores)?>"><?= $item->name?></th>
+                                                        <?php }?>
+                                                        <!--th colspan="3">體育</th>
+                                                        <th colspan="2">彩票</th>
+                                                        <th colspan="5">真人</th>
+                                                        <th colspan="4">電子</th>
+                                                        <th colspan="2">棋牌</th>
+                                                        <th colspan="1">電競</th-->
+                                                    </tr>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $type) {?>
+                                                            <?php foreach ($type->gameStores as $store) {?>
+                                                            <th><?= $store->name?></th>
+                                                            <?php }?>
+                                                        <?php }?>
+                                                        <!--th>協和體育</th>
+                                                        <th>Super體育</th>
+                                                        <th>SXB體育</th-->
+                                                    </tr>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $type) {?>
+                                                            <?php foreach ($type->gameStores as $store) {?>
+                                                                <td align="center">
+                                                                    <input type="checkbox" name="retreat_condition[is_not_calc][<?= $store->id?>]" id="is_not_calc_<?= $store->id?>" value="1">
+                                                                </td>
+                                                            <?php }?>
+                                                        <?php }?>
+                                                        
+                                                        <!--td align="center">
+                                                            <input type="checkbox" name="retreat_condition[is_not_calc][34]" value="1">
+                                                        </td-->
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table station-param-tb table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>有效會員數</th>
+                                        <th>區間(會員有效投注額)</th>
+                                        <th>退水</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr item_list_index="add-item" style="display:none;">
+                                        <td>
+                                            <input type="text" value="0" field="effect_cus_num">
+                                        </td>
+                                        <td>
+                                            <input type="text" value="0" field="lower_limit">&nbsp;~&nbsp;
+                                            <input type="text" value="0" field="upper_limit">
+                                        </td>
+                                        <td>
+                                            <table class="table editor-table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $item) {?>
+                                                            <th colspan="<?=count($item->gameStores)?>"><?= $item->name?></th>
+                                                        <?php }?>
+                                                    </tr>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $type) {?>
+                                                            <?php foreach ($type->gameStores as $store) {?>
+                                                            <th><?= $store->name?></th>
+                                                            <?php }?>
+                                                        <?php }?>
+                                                    </tr>
+                                                    <tr>
+                                                        <?php foreach ($gameStoreTypes as $type) {?>
+                                                            <?php foreach ($type->gameStores as $store) {?>
+                                                                <td>
+                                                                    <input type="text" size="1" value="" field="<?= $store->id?>_retreat">&nbsp;%
+                                                                </td>
+                                                            <?php }?>
+                                                        <?php }?>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                        <td>
+                                            <a href="javascript:void(0);" onclick="delete_param_item(this);" class="btn btn-xs default"> <i class="fa fa-pencil"></i> 刪除 </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>狀態</td>
+                    <td>是否啟用<input type="checkbox" id="retreat-rule-status" name="status" value="1" ></td>
+                </tr>
+                <tr align="right">
+                    <td colspan="100%"><button type="button" class="btn red" onclick="close_layer({type: 1});">取消</button><button type="button" class="btn green" onclick="save_retreat_rule();">儲存</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <input type="hidden" id="etype" value="edit">
+        <input type="hidden" id="edit-retreat-rule-id" value="">
+    </form>
 </div>
 
 </div>

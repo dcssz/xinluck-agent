@@ -26,12 +26,14 @@ var TableDatatablesAjax = function () {
                 "bStateSave": true, // save datatable state(pagination, sort, etc) in cookie.
 
                 "lengthMenu": [
-                    [100],
-                    [100] // change per page values here
+                    [10],
+                    [10] // change per page values here
                 ],
-                "pageLength": 100, // default record count per page
+                "pageLength": 10, // default record count per page
                 "ajax": {
-                    "url": "/op/marquee_op.php?pdisplay=display_manager_list&select_status=" + $("select[name=select_status]").val() + "&select_marquee_target=" + $("select[name=select_marquee_target]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
+					"type":"GET",
+                    // "url": "/admin/list_marquee?pdisplay=display_manager_list&select_status=" + $("select[name=select_status]").val() + "&select_marquee_target=" + $("select[name=select_marquee_target]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
+                    "url": "/admin/list_marquee?select_status=" + $("select[name=select_status]").val() + "&select_marquee_target=" + $("select[name=select_marquee_target]").val() + "&select_nt_id=" + $("select[name=select_nt_id]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
                 },
 				 "bSort": false,
                 /*"order": [
@@ -60,8 +62,15 @@ var TableDatatablesAjax = function () {
 					}
 				},
 				
-				/*"drawCallback": function(oSettings) {
-					$("#manager_table > thead > tr > th").each(function(index, element) {
+				"drawCallback": function(oSettings) {
+					//內容先變存文字
+					$(".news-content-div").each(function(index) {
+						var this_text = $(this).text();
+						if(this_text.length > 20)
+							this_text = this_text.substr(0, 20) + " . . .";
+						$(this).html(this_text);
+					});
+					/*$("#manager_table > thead > tr > th").each(function(index, element) {
 						if($(this).attr("id") == "is-top-th"){
 							$("#manager_table > tbody > tr > td:nth-child(" + (index + 1) + ")").each(function(index, element) {
 								var this_el = $(this);
@@ -77,8 +86,8 @@ var TableDatatablesAjax = function () {
 								}
 							});
 						}
-					});
-				}*/
+					});*/
+				}
 				
             }
         });
@@ -98,7 +107,7 @@ $(function(){
     TableDatatablesAjax.init();
 	
 	$(".search-btn").click(function(){
-		grid.getDataTable().ajax.url("/op/marquee_op.php?pdisplay=display_manager_list&select_status=" + $("select[name=select_status]").val() + "&select_marquee_target=" + $("select[name=select_marquee_target]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
+		grid.getDataTable().ajax.url("/admin/list_marquee?select_status=" + $("select[name=select_status]").val() + "&select_marquee_target=" + $("select[name=select_marquee_target]").val() + "&select_nt_id=" + $("select[name=select_nt_id]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
 	});
 });
 
@@ -143,7 +152,7 @@ function save_marquee(){
 
 function delete_item(edit_marquee_id){
 	if(confirm(change_lang_txt({"org_txt" : "確定要刪除"}) + "?")){
-		requestJSON("marquee_op.php", "pdisplay=delete_item", "edit_marquee_id=" + edit_marquee_id);
+		requestJSON("/admin/delete_marquee", "pdisplay=delete_item", "edit_marquee_id=" + edit_marquee_id);
 	}
 }
 
@@ -178,7 +187,6 @@ function datetime_picker_init() {
 }
 
 function add_managee (id=0) {
-	console.log(123);
 	var edit_unique_code = $("#edit-unique-code").val();
-	location.href = "/admin/news_editor?id="+id+"&etype=add&edit_unique_code=" + edit_unique_code;
+	location.href = "/admin/marquee_editor?id="+id+"&etype=add&edit_unique_code=" + edit_unique_code;
 }

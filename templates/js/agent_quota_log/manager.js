@@ -32,8 +32,9 @@ var TableDatatablesAjax = function () {
                 ],
                 "pageLength": 100, // default record count per page
                 "ajax": {
+					"type":"GET",
                     //"url": "/op/agent_quota_log_op.php?pdisplay=display_manager_list&search_customer_userid=" + $("input[name=search_customer_userid]").val() + "&fuzzy_search=" + ($("input[name=fuzzy_search]").prop("checked") ? "1" : "0") + "&search_start_date=" + $('#search-start-date').val() + "&search_start_time=" + $('#search-start-time').val() + "&search_end_date=" + $('#search-end-date').val() + "&search_end_time=" + $('#search-end-time').val(), // ajax source
-					"url": "/op/agent_quota_log_op.php?pdisplay=display_manager_list&" + $('#report-form').serialize(), // ajax source
+					"url": "/agent/agent_quota_log_op?pdisplay=display_manager_list&" + $('#report-form').serialize(), // ajax source
                 },
 				 "bSort": false,
                 /*"order": [
@@ -81,7 +82,7 @@ $(function(){
 	TableDatatablesAjax.init();
 	$(".search-btn").click(function(){
 		//grid.getDataTable().ajax.url("/op/agent_quota_log_op.php?pdisplay=display_manager_list&search_customer_userid=" + $("input[name=search_customer_userid]").val() + "&fuzzy_search=" + ($("input[name=fuzzy_search]").prop("checked") ? "1" : "0") + "&search_operate_type=" + $("select[name=search_operate_type]").val() + "&search_trans_type=" + $("select[name=search_trans_type]").val() + "&search_start_date=" + $('#search-start-date').val() + "&search_start_time=" + $('#search-start-time').val() + "&search_end_date=" + $('#search-end-date').val() + "&search_end_time=" + $('#search-end-time').val()).load();
-		grid.getDataTable().ajax.url("/op/agent_quota_log_op.php?pdisplay=display_manager_list&" + $('#report-form').serialize()).load();
+		grid.getDataTable().ajax.url("/agent/agent_quota_log_op?pdisplay=display_manager_list&" + $('#report-form').serialize()).load();
 	});
 });
 
@@ -227,7 +228,8 @@ $(".btn_thisweek").click(function(){
 	if(now_day_of_week == 0)
 		now_day_of_week = 7;
 	var sd_date = new Date(Today-now_day_of_week*86400000+86400000).Format("yyyy-MM-dd");
-	var ed_date = new Date(Today.getFullYear(),Today.getMonth(),Today.getDate()).Format("yyyy-MM-dd");
+	var sd = new Date(sd_date);
+	var ed_date = new Date(sd.setDate(sd.getDate() + 6)).Format("yyyy-MM-dd");
 	
 	$('.sddate').each(function(index, element) {
 		$(this).datepicker("setDate", sd_date);

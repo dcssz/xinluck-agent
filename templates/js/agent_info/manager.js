@@ -38,7 +38,8 @@ var TableDatatablesAjax = function () {
                 ],
                 "pageLength": 100, // default record count per page
                 "ajax": {
-                    "url": "/op/agent_info_manager_op.php?pdisplay=display_manager_list&" + $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&top_cus_id=" + $("#top-cus-id").val() + "&edit_station_code=" + $("#edit-station-code").val(), 
+					"type": "get",
+                    "url": "/agent/list_agent_infos?pdisplay=display_manager_list&" + $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&top_cus_id=" + $("#top-cus-id").val() + "&edit_station_code=" + $("#edit-station-code").val(), 
                 },
 				 "bSort": false,
                 /*"order": [
@@ -93,7 +94,7 @@ $(function(){
 		parent.window.iframeHistory[_id].push(current_url + "?" + param);*/
 		
 		var param = $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&edit_station_code=-1";
-		grid.getDataTable().ajax.url("/op/agent_info_manager_op.php?pdisplay=display_manager_list&" + param).load();
+		grid.getDataTable().ajax.url("/agent/list_agent_infos?pdisplay=display_manager_list&" + param).load();
 		
 		//param = param + "&edit_station_code=" + $("#edit-station-code").val();
 		var _id = parent.window.currentFrame;
@@ -106,7 +107,7 @@ function add_agent(){
 	var edit_cus_level = $("#edit-cus-level").val();
 	var edit_station_code = $("#edit-station-code").val();
 	var top_cus_id = $("#top-cus-id").val();
-	location.href = "agent_info_editor.php?etype=add&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id;
+	location.href = "/agent/agent_info_editor?etype=add&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id;
 }
 
 function copy_link(e){

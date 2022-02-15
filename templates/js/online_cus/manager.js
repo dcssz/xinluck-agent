@@ -33,7 +33,7 @@ var TableDatatablesAjax = function () {
                 "pageLength": 100, // default record count per page
                 "ajax": {
 					"type":"get",
-                    "url": "/admin/online_cus_op?pdisplay=display_manager_list", // ajax source
+                    "url": "/agent/online_cus_op?pdisplay=display_manager_list", // ajax source
                 },
 				 "bSort": false,
                 /*"order": [
@@ -75,13 +75,41 @@ var TableDatatablesAjax = function () {
 
 }();
 
+var countdownid;
+var countdown_timer = 0;
 $(function(){
     TableDatatablesAjax.init();
 	
 	$(".search-btn").click(function(){
-		grid.getDataTable().ajax.url("/op/online_cus_op.php?pdisplay=display_manager_list&search_customer_userid=" + $("input[name=search_customer_userid]").val()).load();
+		grid.getDataTable().ajax.url("/agent/online_cus_op?pdisplay=display_manager_list&search_customer_userid=" + $("input[name=search_customer_userid]").val()).load();
 	});
 });
+
+function data_reload_second_countdown(){
+	countdown_timer -= 1;
+	if(countdown_timer < 0){
+		var time_val = $("#change-timer-select").val();
+		countdown_timer = time_val;
+		grid.getDataTable().ajax.reload();
+	}else if(countdown_timer < 10){
+		countdown_timer = "0" + countdown_timer;
+	} 
+	
+	$("#countdown-timer").text(countdown_timer);
+}
+
+function change_countdown_timer(){
+	clearInterval(countdownid);
+	grid.getDataTable().ajax.reload();
+	var time_val = $("#change-timer-select").val();
+	if(time_val == -1){
+		countdown_timer = change_lang_txt({"org_txt" : "不更新"});
+	}else{
+		countdown_timer = time_val;
+		countdownid = window.setInterval(data_reload_second_countdown, 1000);//每1000毫秒调用一次函数
+	}
+	$("#countdown-timer").text(countdown_timer);
+}
 
 function kick_cus(edit_cus_id){
 	requestJSON("online_cus_op.php", "pdisplay=kick_cus", "edit_cus_id=" + edit_cus_id);

@@ -1,5 +1,44 @@
 
-<!DOCTYPE html><!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!--><html lang="en" class="no-js">	<!--<![endif]-->	<!-- BEGIN HEAD -->	<head>        <meta charset="utf-8"/>        <meta http-equiv="X-UA-Compatible" content="IE=edge">        <!--<meta content="width=device-width, initial-scale=1" name="viewport"/>-->        <meta content="" name="description"/>        <meta content="" name="keywords"/>        <meta content="" name="author"/>        <title>控端</title>        <!-- BEGIN PAGE TOP STYLES -->        <!-- END PAGE TOP STYLES -->        <!-- BEGIN GLOBAL MANDATORY STYLES -->        <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700&subset=all" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/simple-line-icons/simple-line-icons.min.css" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/uniform/css/uniform.default.css" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css" rel="stylesheet" type="text/css" />        <!-- END GLOBAL MANDATORY STYLES -->        <!-- BEGIN PAGE LEVEL PLUGINS -->        <link href="/assets/global/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css" rel="stylesheet" type="text/css" />        <link href="/assets/global/plugins/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet" type="text/css" />        <!-- END PAGE LEVEL PLUGINS -->        <!-- BEGIN THEME GLOBAL STYLES -->        <link href="/assets/global/css/components.min.css" rel="stylesheet" id="style_components" type="text/css" />        <link href="/assets/global/css/plugins.min.css" rel="stylesheet" type="text/css" />        <!-- END THEME GLOBAL STYLES -->        <!-- BEGIN THEME LAYOUT STYLES -->        <link href="/assets/layouts/layout/css/self-layout.css" rel="stylesheet" type="text/css" />        <link href="/assets/layouts/layout/css/themes/darkblue.min.css" rel="stylesheet" type="text/css" id="style_color" />        <link href="/assets/layouts/layout/css/custom.min.css" rel="stylesheet" type="text/css" />        <!-- END THEME LAYOUT STYLES -->        <link href="/templates/css/style.css?cache=209" rel="stylesheet" type="text/css"/>		<link href="/templates/css/tw_style.css?cache=205" rel="stylesheet" type="text/css"/>                <!-- BEGIN PAGE FIRST SCRIPTS -->        <script src="assets/global/plugins/jquery.min.js" type="text/javascript"></script>        <!-- END PAGE FIRST SCRIPTS -->        <link rel="shortcut icon" href="#"/>	</head>	<!-- END HEAD -->	<body>       <div class="page-inner-content">
+<!DOCTYPE html><!--[if IE 8]> <html lang="en" class="ie8 no-js"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9 no-js"> <![endif]--><!--[if !IE]><!-->
+<html lang="en" class="no-js">	<!--<![endif]-->	<!-- BEGIN HEAD -->	
+<head>        
+<meta charset="utf-8"/>        
+<meta http-equiv="X-UA-Compatible" content="IE=edge">        
+<!--<meta content="width=device-width, initial-scale=1" name="viewport"/>-->        
+<meta content="" name="description"/>        
+<meta content="" name="keywords"/>        
+<meta content="" name="author"/>        
+<title>控端</title>        
+<!-- BEGIN PAGE TOP STYLES -->        <!-- END PAGE TOP STYLES -->        <!-- BEGIN GLOBAL MANDATORY STYLES -->        
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700&subset=all" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/simple-line-icons/simple-line-icons.min.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/uniform/css/uniform.default.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css" rel="stylesheet" type="text/css" />        
+<!-- END GLOBAL MANDATORY STYLES -->        <!-- BEGIN PAGE LEVEL PLUGINS -->        
+<link href="/assets/global/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/global/plugins/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet" type="text/css" />        
+<!-- END PAGE LEVEL PLUGINS -->        <!-- BEGIN THEME GLOBAL STYLES -->        
+<link href="/assets/global/css/components.min.css" rel="stylesheet" id="style_components" type="text/css" />        
+<link href="/assets/global/css/plugins.min.css" rel="stylesheet" type="text/css" />        
+<!-- END THEME GLOBAL STYLES -->        
+<!-- BEGIN THEME LAYOUT STYLES -->        
+<link href="/assets/layouts/layout/css/self-layout.css" rel="stylesheet" type="text/css" />        
+<link href="/assets/layouts/layout/css/themes/darkblue.min.css" rel="stylesheet" type="text/css" id="style_color" />        
+<link href="/assets/layouts/layout/css/custom.min.css" rel="stylesheet" type="text/css" />        
+<!-- END THEME LAYOUT STYLES -->        
+<link href="/templates/css/style.css?cache=209" rel="stylesheet" type="text/css"/>		
+<link href="/templates/css/tw_style.css?cache=205" rel="stylesheet" type="text/css"/>                
+<!-- BEGIN PAGE FIRST SCRIPTS -->        
+<script src="/assets/global/plugins/jquery.min.js" type="text/javascript"></script>        
+<!-- END PAGE FIRST SCRIPTS -->        
+<link rel="shortcut icon" href="#"/>	
+</head>	<!-- END HEAD -->	
+<body>       
+<div class="page-inner-content">
 	<!--slot=0-->
 <style>
 .page-bar {
@@ -86,7 +125,7 @@ td
 	color:#FFF;
 }
 </style>
-<form id="report-form" class="form-horizontal" role="form" method="GET" action="cus_wd_quota_log_manager.php">
+<form id="report-form" class="form-horizontal" role="form" method="GET" action="cus_wd_quota_log_manager">
 	<div class="page-bar">
 		<div class="act-group hidden">
 			<button class="btn green-sharp btn-large " onclick="parent.goIframeHistoryBack(this, event);"> <i class="fa fa-mail-reply"></i> <font class="">回上頁</font> </button>
@@ -94,8 +133,8 @@ td
 		<div class="act-group">
 			<div class="date-div">
 				<div>日期區間</div>&nbsp;
-				<div class="input-group input-small date date-picker sddate" data-date="2021-10-23" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-start-date" name="sddate" value="2021-10-23" readonly>
+				<div class="input-group input-small date date-picker sddate" data-date="<?=$sddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-start-date" name="sddate" value="<?=$sddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -103,8 +142,8 @@ td
 					</span>
 				</div>
 				<div class="sign">~</div>
-				<div class="input-group input-small date date-picker eddate" data-date="2021-10-23" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-end-date" name="eddate" value="2021-10-23" readonly>
+				<div class="input-group input-small date date-picker eddate" data-date="<?=$eddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=$eddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -113,30 +152,30 @@ td
 				</div>
 			</div>
 		</div>
-		<div class="act-group">
+		<!--div class="act-group">
 			<span>帳號層級</span>&nbsp;
 			<select name="search_level">
 				<option value="16" >會員</option>
 				<option value="15" >代理</option>
 				<option value="14" >總代</option>
 			</select>
-		</div>
+		</div-->
 		<div class="act-group">
 			<span>帳號</span>&nbsp;
-			<input type="text" size="8" name="search_customer_userid" value="">
+			<input type="text" size="8" name="search_customer_userid" value="<?=$search_customer_userid?>">
 		</div>
 		<div class="act-group">
-			<span>模糊搜尋<input type="checkbox" name="fuzzy_search" value="1" /></span>
+			<span>模糊搜尋<input type="checkbox" name="fuzzy_search" value="1" <?=$fuzzy_search == 1 ?'checked':'' ?>/></span>
 		</div>
 		<div class="act-group">
 			<span>異動類型</span>&nbsp;
-			<select name="search_trans_type">
-				<option value="-1">全部</option>
+			<select name="search_trans_type" >
+				<option value="-1" <?=$search_trans_type == -1 ?'selected="selected"':''?>>全部</option>
 				<!--slot=1-->
 
-	<option  value="3" > 會員出入金</option>
+				<option  value="3" <?=$search_trans_type == 3 ?'selected="selected"':''?>> 會員出入金</option>
 
-	<option  value="4" > 人工出入金</option>
+				<option  value="4" <?=$search_trans_type == 4 ?'selected="selected"':''?>> 人工出入金</option>
 
 
 			</select>
@@ -150,23 +189,24 @@ td
 	<div class="search-detail-div">
 		<div class="detail-bar date-pick-div">
 			<span>快選日期</span>&nbsp;
-			<button type="button" class="btn red btn_yesterday btn-md" today-date="2021-10-23">昨日</button>
-			<button type="button" class="btn red btn_today btn-md" today-date="2021-10-23">今日</button>
-			<button type="button" class="btn red btn_lastweek btn-md" today-date="2021-10-23">上週</button>	
-			<button type="button" class="btn red btn_thisweek btn-md" today-date="2021-10-23">本周</button>
-			<button type="button" class="btn red btn_lastmonth btn-md" today-date="2021-10-23">上月</button>
-			<button type="button" class="btn red btn_thismonth btn-md" today-date="2021-10-23">本月</button>
+			<button type="button" class="btn red btn_yesterday btn-md" today-date="<?=date('Y-m-d')?>">昨日</button>
+			<button type="button" class="btn red btn_today btn-md" today-date="<?=date('Y-m-d')?>">今日</button>
+			<button type="button" class="btn red btn_lastweek btn-md" today-date="<?=date('Y-m-d')?>">上週</button>	
+			<button type="button" class="btn red btn_thisweek btn-md" today-date="<?=date('Y-m-d')?>">本周</button>
+			<button type="button" class="btn red btn_lastmonth btn-md" today-date="<?=date('Y-m-d')?>">上月</button>
+			<button type="button" class="btn red btn_thismonth btn-md" today-date="<?=date('Y-m-d')?>">本月</button>
 		</div>
 		<div class="detail-bar">
 			
 		</div>
 	</div>
 	<div id="type-items-btn-area">
-		<a class="type-items-btn active" href="cus_wd_quota_log_manager?type=1">入金明細</a>
-		<a class="type-items-btn " href="cus_wd_quota_log_manager?type=2">出金明細</a>
+		<a class="type-items-btn <?=$type ==1 ?'active':'' ?>" href="cus_wd_quota_log_manager?type=1">入金明細</a>
+		<a class="type-items-btn  <?=$type ==2 ?'active':'' ?>" href="cus_wd_quota_log_manager?type=2">出金明細</a>
 	</div>
 	<input type="hidden" id="page-now" name="page_now" value="1" >
-	<input type="hidden" id="type" name="type" value="1" >
+	<input type="hidden" id="type" name="type" value="<?=$type?>" >
+	<input type="hidden"  name="start" value="0" >
 </form>	
 <div class="portlet light bordered">
 	<div class="portlet-title">
@@ -189,11 +229,22 @@ td
 						<th></th>
 						<th>申請金額</th>
 						<th>手續費</th>
-                        <th>實際入款</th>
+                        <th>實際<?=$type ==1 ?'入':'出' ?>款</th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr class="total-tr"><td class="align-r">小計</td><td>0</td><td class="red-txt">0</td><td class="green-txt">0</td></tr><tr class="total-tr"><td class="align-r">總計</td><td>0</td><td class="red-txt">0</td><td class="green-txt">0</td></tr>
+					<tr class="total-tr">
+						<td class="align-r">小計</td>
+						<td><?=$pageMoney?></td>
+						<td class="red-txt"><?=$pageFee?></td>
+						<td class="green-txt"><?=$pageReal?></td>
+					</tr>
+					<tr class="total-tr">
+						<td class="align-r">總計</td>
+						<td><?=$totalMoney?></td>
+						<td class="red-txt"><?=$totalFee?></td>
+						<td class="green-txt"><?=$totalReal?></td>
+					</tr>
 				</tbody>
 			 </table>
 		</div>
@@ -202,17 +253,16 @@ td
 				<thead>
 					<tr class="bg-green1 color-white">
                        	<!--slot=2-->
-<th>訂單號</th>
-<th>支付類型</th>
-<th>商戶名稱</th>
-<th>上層代理</th>
-<th>層級</th>
-<th>帳號</th>
-<th>姓名</th>
-<th>申請金額</th>
-<th>手續費</th>
-<th>實際入款</th>
-
+						<th>訂單號</th>
+						<th>支付類型</th>
+						<th>商戶名稱</th>
+						<th>上層代理</th>
+						<th>層級</th>
+						<th>帳號</th>
+						<th>姓名</th>
+						<th>申請金額</th>
+						<th>手續費</th>
+						<th>實際<?=$type ==1 ?'入':'出' ?>款</th>
                        	<th>交易狀態</th>
                         <th>申請時間</th>
                         <th>最後更新時間</th>
@@ -220,55 +270,94 @@ td
 					</tr>
 				</thead>
 				<tbody>
-					
+					<?php
+					foreach($summarys as $item){
+					?> 
+					<tr>
+						<td><?=$item->order_id?></td>
+						<td><?=App\Models\UserMoney::getTransTypeName($item->trans_type)?></td>
+						<td><?=$item->user->username?></td>
+						<td><?=App\Models\User::getAgentNameOfMember($item->user->id)?></td>
+						<td><?=App\Models\User::getRoleName($item->user->role)?></td>
+						<td><?=$item->user->username?></td>
+						<td><?=$item->user->nickname?></td>
+						<td><?=$item->money?></td>
+						<td><?=$item->fee?></td>
+						<td><?=($item->money - $item->fee)?></td>
+						<td><?=App\Models\UserMoney::getStatus($item->status)?></td>
+						<td><?=$item->apply_time?></td>
+						<td><?=$item->updated_at?></td>
+						<td><?=$item->reason?></td>
+					</tr>
+					<?php
+					}
+					?>
 				</tbody>
 			 </table>
 		</div>
 	</div>
 	<div class="align-right">
-		<div class="page-div hidden"><!--slot=0-->
-第<select onchange="select_page(this.value)"></select>頁﹐共0頁
-</div>
+		<div class="page-div "><!--slot=0-->
+		第<select onchange="select_page(this.value)">
+			<?php
+				for($i=1;$i<=$totalPages;$i++){
+					if (($i-1)*$pageSize == $start) {
+						echo '<option value="'.($i-1)*$pageSize.'" selected="selected">'.$i.'</option>';
+
+					} else {
+						echo '<option value="'.($i-1)*$pageSize.'">'.$i.'</option>';
+
+					}
+				}
+			?>
+		</select>頁﹐共<?=$totalPages?>頁
+		</div>
 	</div>
 </div>
 
 </div>
         <!--[if lt IE 9]>
-<script src="assets/global/plugins/respond.min.js"></script>
-<script src="assets/global/plugins/excanvas.min.js"></script> 
+<script src="/assets/global/plugins/respond.min.js"></script>
+<script src="/assets/global/plugins/excanvas.min.js"></script> 
 <![endif]-->
         <!-- BEGIN CORE PLUGINS -->
-        <script src="assets/global/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/js.cookie.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/jquery.blockui.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/uniform/jquery.uniform.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/js.cookie.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/jquery.blockui.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/uniform/jquery.uniform.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js" type="text/javascript"></script>
         <!-- END CORE PLUGINS -->
         <!-- BEGIN PAGE LEVEL PLUGINS -->
-        <script src="assets/global/scripts/datatable.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
-        <script src="assets/global/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js" type="text/javascript"></script>
+        <script src="/assets/global/scripts/datatable.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
+        <script src="/assets/global/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js" type="text/javascript"></script>
         <!-- END PAGE LEVEL PLUGINS -->
         <!-- BEGIN THEME GLOBAL SCRIPTS -->
-        <script src="assets/global/scripts/self-app.js?c=1" type="text/javascript"></script>
+        <script src="/assets/global/scripts/self-app.js?c=1" type="text/javascript"></script>
         <!-- END THEME GLOBAL SCRIPTS -->
         <!-- BEGIN PAGE LEVEL SCRIPTS -->
         <!-- END PAGE LEVEL SCRIPTS -->
         <!-- BEGIN THEME LAYOUT SCRIPTS -->
-        <script src="assets/layouts/layout/scripts/layout.min.js" type="text/javascript"></script>
-        <script src="assets/layouts/layout/scripts/demo.min.js" type="text/javascript"></script>
-        <script src="assets/layouts/global/scripts/quick-sidebar.min.js" type="text/javascript"></script>
+        <script src="/assets/layouts/layout/scripts/layout.min.js" type="text/javascript"></script>
+        <script src="/assets/layouts/layout/scripts/demo.min.js" type="text/javascript"></script>
+        <script src="/assets/layouts/global/scripts/quick-sidebar.min.js" type="text/javascript"></script>
         <!-- END THEME LAYOUT SCRIPTS -->
-        <script src="layer/layer.js"></script>
-        <script src="templates/js/kang_ajax.js?cache=102"></script>
-		<script src="templates/js/kang_common.js?cache=108"></script>
-		<script src="templates/js/kang_all.js?cache=203"></script>
-		<script src="templates/js/lang/tw.js?cache=203"></script>
-        <script src="templates/js/cus_wd_quota_log/manager.js?cache=133" type="text/javascript"></script>
-
+        <script src="/layer/layer.js"></script>
+        <script src="/templates/js/kang_ajax.js?cache=102"></script>
+		<script src="/templates/js/kang_common.js?cache=108"></script>
+		<script src="/templates/js/kang_all.js?cache=203"></script>
+		<script src="/templates/js/lang/tw.js?cache=203"></script>
+        <script src="/templates/js/cus_wd_quota_log/manager.js?cache=133" type="text/javascript"></script>
+		<script>
+			function select_page (i){
+				$('input[name="start"]').val(i);
+				
+				$('#report-form').submit();
+			}
+		</script>
     </body>
 </html>

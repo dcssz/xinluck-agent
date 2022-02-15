@@ -34,7 +34,7 @@ class News extends AdminBase
 		$news = NewsModel::select('target','sort','content','release_time_start','release_status','is_window','announcement_time','status','operator','updated_at','id')->where($where)->skip($start)->take($length)->get();
 		$result = array();
 		foreach($news as $new){
-			if($new->target === 0)
+			if($new->target === 3)
 				$new->target = _('所有');
 			elseif($new->target === 1)
 				$new->target =  _('会员');		
@@ -44,7 +44,12 @@ class News extends AdminBase
 				$new->target =  $new->target;
 			
 			$new->release_status='<a class="status-btn status-open" href="javascript:void(0);">'._('常駐').'</a>';
-			$new->status='<a class="status-btn status-open" href="javascript:void(0);">'._('啟用').'</a>';
+			
+			if ($new->status == 1) {
+				$new->status='<a class="status-btn status-open" href="javascript:void(0);">'._('啟用').'</a>';
+			} else {
+				$new->status='<a class="status-btn status-close" href="javascript:void(0);">'._('停用').'</a>';
+			}
 			$action = "<a href=\"news_editor?etype=edit&edit_news_id=".$new->id."\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改 </a>\n\t\t\t\t\t\t\t\t<a href=\"javascript:void(0);\" onclick=\"delete_item(".$new->id.");\" class=\"btn btn-xs default\"> <i class=\"fa fa-trash-o\"></i> 刪除 </a>";
 		
 			$formatItem = array();
@@ -88,8 +93,8 @@ class News extends AdminBase
 		$news->release_time_start = $post['publish_start_date'] .' '.$post['publish_start_time'];
 		$news->release_time_end = $post['publish_start_date'] .' '.$post['publish_start_time'];
 		$news->is_window = $post['news_alert'];
-		$news->status = $post['news_status'];
-		$news->operator = 'admin';
+		$news->status = isset($post['news_status'])?$post['news_status']:0;;
+		$news->operator = $_SESSION['username'];
 		$news->created_at = date('Y-m-d H:i:s');
 		$news->updated_at = date('Y-m-d H:i:s');
 		$news->save();

@@ -26,12 +26,14 @@ var TableDatatablesAjax = function () {
                 "bStateSave": true, // save datatable state(pagination, sort, etc) in cookie.
 
                 "lengthMenu": [
-                    [100],
-                    [100] // change per page values here
+                    [10],
+                    [10] // change per page values here
                 ],
-                "pageLength": 100, // default record count per page
+                "pageLength": 10, // default record count per page
                 "ajax": {
-                    "url": "/op/site_msg_op.php?pdisplay=display_manager_list&select_msg_type=" + $("select[name=select_msg_type]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
+					"type":"GET",
+                    // "url": "/op/site_msg_op.php?pdisplay=display_manager_list&select_msg_type=" + $("select[name=select_msg_type]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
+                    "url": "/admin/list_site_msg?select_status=" + $("select[name=select_status]").val() + "&select_site_msg_target=" + $("select[name=select_site_msg_target]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
                 },
 				 "bSort": false,
                 /*"order": [
@@ -152,7 +154,7 @@ $(function(){
 	TableDatatablesAjax2.init();
 	
 	$(".search-btn").click(function(){
-		grid.getDataTable().ajax.url("/op/site_msg_op.php?pdisplay=display_manager_list&select_msg_type=" + $("select[name=select_msg_type]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
+		grid.getDataTable().ajax.url("/admin/list_site_msg?select_status="  + $("select[name=select_status]").val() + "&select_site_msg_target=" + $("select[name=select_site_msg_target]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
 	});
 });
 
@@ -279,4 +281,9 @@ function initial_item_ckbox_set(){
 		
 		item_ckbox_el.change();
 	});
+}
+
+function add_site_msg(id=0){
+	var edit_unique_code = $("#edit-unique-code").val();
+	location.href = "/admin/site_msg_editor?id="+id+"&etype=add&edit_unique_code=" + edit_unique_code;
 }

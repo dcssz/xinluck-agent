@@ -31,7 +31,7 @@ var TableDatatablesAjax = function () {
                 ],
                 "pageLength": 100, // default record count per page
                 "ajax": {
-                    "url": "/op/discount_manager_op.php?pdisplay=display_manager_list&discount_pattern=" + $("#discount-pattern").val() + "&select_status=" + $("select[name=select_status]").val(), // ajax source
+                    "url": "/admin/discount_manager_op?pdisplay=display_manager_list&discount_pattern=" + $("#discount-pattern").val() + "&select_status=" + $("select[name=select_status]").val(), // ajax source
 					/*"data": {"select_station_code" : $("select[name=select_station_code]").val(),
 							"select_status" : $("select[name=select_status]").val()},*/
                 },
@@ -65,7 +65,7 @@ var TableDatatablesAjax = function () {
         });
 		
 		$(".search-btn").click(function(){
-			grid.getDataTable().ajax.url("/op/discount_manager_op.php?pdisplay=display_manager_list&select_station_code=" + $("select[name=select_station_code]").val() + "&select_status=" + $("select[name=select_status]").val()).load();
+			grid.getDataTable().ajax.url("/admin/discount_manager_op?pdisplay=display_manager_list&select_station_code=" + $("select[name=select_station_code]").val() + "&select_status=" + $("select[name=select_status]").val()).load();
 		});
     }
 
@@ -87,11 +87,11 @@ $(function(){
 
 function delete_item(edit_discount_id){
 	if(confirm(change_lang_txt({"org_txt" : "確定要刪除"}) + "?")){
-		requestJSON("discount_manager_op.php", "pdisplay=delete_item", "edit_discount_id=" + edit_discount_id);
+		requestJSON("/admin/discount_manager_op", "pdisplay=delete_item", "edit_discount_id=" + edit_discount_id);
 	}
 }
 
 function add_discount(){
 	var discount_pattern = $("#discount-pattern").val();
-	location.href = "discount_editor.php?etype=add&discount_pattern=" + discount_pattern;
+	location.href = "/admin/discount_editor?etype=add&discount_pattern=" + discount_pattern;
 }

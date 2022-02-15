@@ -39,13 +39,13 @@ class Game extends AdminBase
 		foreach($datas as $data){
 			$name = $data->name;
 			$percent  = $data->percent;
-			if ($data->maintain_end >= date('Y-m-d H:i:s')) {
+			if ($data->maintain_end >= date('Y-m-d H:i:s') && $data->maintain_start <= date('Y-m-d H:i:s')) {
 				$maintain = $data->maintain_start . '~' . $data->maintain_end;
 			} else {
 				$maintain = '';
 			}
 			if ($data->status == 1) {
-				if ($data->maintain_end >= date('Y-m-d H:i:s')) {
+				if ($data->maintain_end >= date('Y-m-d H:i:s') && $data->maintain_start <= date('Y-m-d H:i:s')) {
 					//维护
 					$status = "<a class=\"status-btn status-maintain\" href=\"javascript:void(0);\">維護</a>";
 				} else {
@@ -101,8 +101,8 @@ class Game extends AdminBase
 		$name = $data->name;
 		$percent = $data->percent;
 		$date = date('Y-m-d');
-		$time = date('H-i-s');
-		$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"#editor-item-div","rtntext":"<!--slot=2-->\n<form id=\"save-game-store-info-form\">\n\t<table class=\"table editor-table table-bordered\">\n\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th class=\"title\" colspan=\"100%\">\u7de8\u8f2f<\/th>\n\t\t\t<\/tr>\n\t\t<\/thead>\n\t\t<tbody>\n\t\t\t<tr>\n\t\t\t\t<td>廠商名稱<\/td>\n\t\t\t\t<td>'.$name.'<\/td>\n\t\t\t<\/tr>\n            <tr class=\"\">\n\t\t\t\t<td>\u4e0a\u7e73%\u6578<\/td>\n\t\t\t\t<td><input type=\"text\" name=\"ac_per\" value=\"'.$percent.'\">&nbsp;%<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr class=\"hidden\">\n\t\t\t\t<td>\u806f\u7d61\u7fa4\u540d\u7a31<\/td>\n\t\t\t\t<td><input type=\"text\" size=\"40\" id=\"contact-txt\" name=\"contact_txt\" value=\"\"><\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u958b\u59cb\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker sddate\" data-date=\"'.$date.'\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"start_date\" value=\"'.$date.'\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small start-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"start_time\" value=\"'.$time.'\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u7d50\u675f\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker eddate\" data-date=\"'.$date.'\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"end_date\" value=\"2021-12-14\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small end-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"end_time\" value=\"'.$time.'\\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr align=\"right\">\n\t\t\t\t<td colspan=\"100%\"><button type=\"button\" class=\"btn red\" onclick=\"close_layer({type: 1});\">\u53d6\u6d88<\/button><button type=\"button\" class=\"btn green\" onclick=\"save_game_store_info();\">\u5132\u5b58<\/button><\/td>\n\t\t\t<\/tr>\n\t\t<\/tbody>\n\t<\/table>\n<\/form>\n<input type=\"hidden\" id=\"etype\" value=\"edit\" \/>\n<input type=\"hidden\" id=\"edit-info-id\" value=\"'.$id.'\" \/>\n"},{"spanid":"javascript","rtntext":"show_editor_item_div();datetime_picker_init();"}]}}');
+		$time = date('H:i:s');
+		$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"#editor-item-div","rtntext":"<!--slot=2-->\n<form id=\"save-game-store-info-form\">\n\t<table class=\"table editor-table table-bordered\">\n\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th class=\"title\" colspan=\"100%\">\u7de8\u8f2f<\/th>\n\t\t\t<\/tr>\n\t\t<\/thead>\n\t\t<tbody>\n\t\t\t<tr>\n\t\t\t\t<td>廠商名稱<\/td>\n\t\t\t\t<td>'.$name.'<\/td>\n\t\t\t<\/tr>\n            <tr class=\"\">\n\t\t\t\t<td>\u4e0a\u7e73%\u6578<\/td>\n\t\t\t\t<td><input type=\"text\" name=\"ac_per\" value=\"'.$percent.'\">&nbsp;%<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr class=\"hidden\">\n\t\t\t\t<td>\u806f\u7d61\u7fa4\u540d\u7a31<\/td>\n\t\t\t\t<td><input type=\"text\" size=\"40\" id=\"contact-txt\" name=\"contact_txt\" value=\"\"><\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u958b\u59cb\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker sddate\" data-date=\"'.$date.'\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"start_date\" value=\"'.$date.'\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small start-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"start_time\" value=\"'.$time.'\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u7d50\u675f\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker eddate\" data-date=\"'.$date.'\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"end_date\" value=\"'.$date.'\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small end-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"end_time\" value=\"'.$time.'\\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr align=\"right\">\n\t\t\t\t<td colspan=\"100%\"><button type=\"button\" class=\"btn red\" onclick=\"close_layer({type: 1});\">\u53d6\u6d88<\/button><button type=\"button\" class=\"btn green\" onclick=\"save_game_store_info();\">\u5132\u5b58<\/button><\/td>\n\t\t\t<\/tr>\n\t\t<\/tbody>\n\t<\/table>\n<\/form>\n<input type=\"hidden\" id=\"etype\" value=\"edit\" \/>\n<input type=\"hidden\" id=\"edit-info-id\" value=\"'.$id.'\" \/>\n"},{"spanid":"javascript","rtntext":"show_editor_item_div();datetime_picker_init();"}]}}');
 		
 		return $response->withJson($msg);
 	}
@@ -116,7 +116,7 @@ class Game extends AdminBase
 		$data->percent = $post['ac_per'];
 		$data->maintain_start = $post['start_date'] . ' ' . $post['start_time'] . ':00';
 		$data->maintain_end = $post['end_date'] . ' ' . $post['end_time'] . ':00';
-		$data->operator = 'admin';
+		$data->operator = $_SESSION['username'];
 		$data->save();
 		$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"close_layer({type: 1});pop_msg(show_msg(\'-1\', {\"target\":\"kangGameStoreInfo\"}));grid.getDataTable().ajax.reload();"}]}}');
 		
@@ -126,9 +126,11 @@ class Game extends AdminBase
 	public function gameCategoryInfoManager($request, $response)
     {
 		$gameMarks = GameMarkModel::all();
+		$gameStores = GameStoreModel::all();
 		
         return $this->view->render('game_category_info_manager', [
 			"gameMarks" => $gameMarks,
+			"gameStores" => $gameStores,
 		]);
 	}
 
@@ -137,6 +139,25 @@ class Game extends AdminBase
 		$get = $request->getQueryParams();
 		$where = array();
 		//$where[] = array('status',1);
+		if(isset($get['search_status']) &&  $get['search_status'] != '-1' ) {
+			if ($get['search_status'] == 2) {
+				$where[] = array('status',1);
+				$where[] = array('maintain_end', '>=' ,date('Y-m-d H:i:s'));
+				$where[] = array('maintain_start', '<=' ,date('Y-m-d H:i:s'));
+			} else {
+				$where[] = array('status',$get['search_status']);
+			}
+		}
+			
+		if(isset($get['search_game_name']) &&  $get['search_game_name'] != '' )
+			$where[] = array('name',$get['search_game_name']);
+		if(isset($get['search_game_store']) &&  $get['search_game_store'] != '-1' )
+			$where[] = array('game_store_id',$get['search_game_store']);
+		if(isset($get['search_game_category']) &&  $get['search_game_category'] != '-1' )
+			$where[] = array('type',$get['search_game_category']);
+		if(isset($get['search_mark']) &&  $get['search_mark'] != '-1' )
+			$where[] = array('game_mark_id',$get['search_mark']);
+
 		$start = 0;
 		if(isset($get['start']))
 			$start = intval($get['start']);
@@ -157,13 +178,13 @@ class Game extends AdminBase
 			} else {
 				$mark = "未設置";
 			}
-			if ($data->maintain_end >= date('Y-m-d H:i:s')) {
+			if ($data->maintain_end >= date('Y-m-d H:i:s') && $data->maintain_start <= date('Y-m-d H:i:s')) {
 				$maintain = $data->maintain_start . '~' . $data->maintain_end;
 			} else {
 				$maintain = '';
 			}
 			if ($data->status == 1) {
-				if ($data->maintain_end >= date('Y-m-d H:i:s')) {
+				if ($data->maintain_end >= date('Y-m-d H:i:s') && $data->maintain_start <= date('Y-m-d H:i:s')) {
 					//维护
 					$status = "<a class=\"status-btn status-maintain\" href=\"javascript:void(0);\">維護</a>";
 				} else {
@@ -218,13 +239,7 @@ class Game extends AdminBase
 
 		
 		$data = GameModel::with('gameStore', 'gameMark')->where('id', $id)->first();
-		$name = $data->name;
-		$percent = $data->percent;
-		$date = date('Y-m-d');
-		$time = date('H-i-s');
-		$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"#editor-item-div","rtntext":"<!--slot=2-->\n<form id=\"save-game-category-info-form\">\n\t<table class=\"table editor-table table-bordered\">\n\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th class=\"title\" colspan=\"100%\">\u7de8\u8f2f<\/th>\n\t\t\t<\/tr>\n\t\t<\/thead>\n\t\t<tbody>\n\t\t\t<tr>\n\t\t\t\t<td>\u904a\u6232\u540d\u7a31<\/td>\n\t\t\t\t<td>\u7ae0\u9b5a\u738b<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u5ee0\u5546\u540d\u7a31<\/td>\n\t\t\t\t<td>KA\u96fb\u5b50<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u904a\u6232\u985e\u578b<\/td>\n\t\t\t\t<td>\u6355\u9b5a\u6a5f<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u904a\u6232\u6a19\u7c3d<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<select name=\"edit_mark_id\" class=\"form-control input-inline\" style=\"width:300px;\">\n\t\t\t\t\t\t<option value=\"0\">\u8acb\u9078\u64c7<\/option>\n\t\t\t\t\t\t<!--slot=1-->\n\n\t<option  value=\"5\" > 123<\/option>\n\n\t<option  value=\"8\" > 5<\/option>\n\n\n\t\t\t\t\t<\/select>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u958b\u59cb\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker sddate\" data-date=\"2021-12-15\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"start_date\" value=\"2021-12-15\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small start-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"start_time\" value=\"14:58:11\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u7d50\u675f\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker eddate\" data-date=\"2021-12-15\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"end_date\" value=\"2021-12-15\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small end-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"end_time\" value=\"14:58:11\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr align=\"right\">\n\t\t\t\t<td colspan=\"100%\"><button type=\"button\" class=\"btn red\" onclick=\"close_layer({type: 1});\">\u53d6\u6d88<\/button><button type=\"button\" class=\"btn green\" onclick=\"save_game_category_info();\">\u5132\u5b58<\/button><\/td>\n\t\t\t<\/tr>\n\t\t<\/tbody>\n\t<\/table>\n<\/form>\n<input type=\"hidden\" id=\"etype\" value=\"edit\" \/>\n<input type=\"hidden\" id=\"edit-info-id\" value=\"2898\" \/>\n"},{"spanid":"javascript","rtntext":"show_editor_item_div();datetime_picker_init();"}]}}');
-		//$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"#editor-item-div","rtntext":"<!--slot=2-->\n<form id=\"save-game-store-info-form\">\n\t<table class=\"table editor-table table-bordered\">\n\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th class=\"title\" colspan=\"100%\">\u7de8\u8f2f<\/th>\n\t\t\t<\/tr>\n\t\t<\/thead>\n\t\t<tbody>\n\t\t\t<tr>\n\t\t\t\t<td>廠商名稱<\/td>\n\t\t\t\t<td>'.$name.'<\/td>\n\t\t\t<\/tr>\n            <tr class=\"\">\n\t\t\t\t<td>\u4e0a\u7e73%\u6578<\/td>\n\t\t\t\t<td><input type=\"text\" name=\"ac_per\" value=\"'.$percent.'\">&nbsp;%<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr class=\"hidden\">\n\t\t\t\t<td>\u806f\u7d61\u7fa4\u540d\u7a31<\/td>\n\t\t\t\t<td><input type=\"text\" size=\"40\" id=\"contact-txt\" name=\"contact_txt\" value=\"\"><\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u958b\u59cb\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker sddate\" data-date=\"'.$date.'\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"start_date\" value=\"'.$date.'\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small start-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"start_time\" value=\"'.$time.'\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr>\n\t\t\t\t<td>\u7dad\u8b77\u7d50\u675f\u6642\u9593<\/td>\n\t\t\t\t<td>\n\t\t\t\t\t<div class=\"fl-l\">\n\t\t\t\t\t\t<div class=\"input-group input-small date date-picker eddate\" data-date=\"'.$date.'\" data-date-format=\"yyyy-mm-dd\" data-date-viewmode=\"years\">\n\t\t\t\t\t\t\t<input type=\"text\" class=\"form-control\" name=\"end_date\" value=\"2021-12-14\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t<i class=\"fa fa-calendar\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t\t<div class=\"fl-l mr-l-10\">\n\t\t\t\t\t\t<div class=\"input-group input-small end-time\">\n\t\t\t\t\t\t\t<input type=\"text\" name=\"end_time\" value=\"'.$time.'\\" class=\"form-control timepicker timepicker-24\" readonly>\n\t\t\t\t\t\t\t<span class=\"input-group-btn\">\n\t\t\t\t\t\t\t\t<button class=\"btn default\" type=\"button\">\n\t\t\t\t\t\t\t\t\t<i class=\"fa fa-clock-o\"><\/i>\n\t\t\t\t\t\t\t\t<\/button>\n\t\t\t\t\t\t\t<\/span>\n\t\t\t\t\t\t<\/div>\n\t\t\t\t\t<\/div>\n\t\t\t\t<\/td>\n\t\t\t<\/tr>\n\t\t\t<tr align=\"right\">\n\t\t\t\t<td colspan=\"100%\"><button type=\"button\" class=\"btn red\" onclick=\"close_layer({type: 1});\">\u53d6\u6d88<\/button><button type=\"button\" class=\"btn green\" onclick=\"save_game_store_info();\">\u5132\u5b58<\/button><\/td>\n\t\t\t<\/tr>\n\t\t<\/tbody>\n\t<\/table>\n<\/form>\n<input type=\"hidden\" id=\"etype\" value=\"edit\" \/>\n<input type=\"hidden\" id=\"edit-info-id\" value=\"'.$id.'\" \/>\n"},{"spanid":"javascript","rtntext":"show_editor_item_div();datetime_picker_init();"}]}}');
-		
+
 		return $response->withJson($data);
 	}
 
@@ -234,13 +249,13 @@ class Game extends AdminBase
         $post = $request->getParsedBody();
 		$id = $post['edit_info_id'];
 		$data = GameModel::where('id', $id)->first();
-		$data->percent = $post['ac_per'];
+		$data->game_mark_id = $post['edit_mark_id'];
 		$data->maintain_start = $post['start_date'] . ' ' . $post['start_time'] . ':00';
 		$data->maintain_end = $post['end_date'] . ' ' . $post['end_time'] . ':00';
-		$data->operator = 'admin';
+		$data->operator = $_SESSION['username'];
 		$data->save();
-		$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"close_layer({type: 1});pop_msg(show_msg(\'-1\', {\"target\":\"kangGameStoreInfo\"}));grid.getDataTable().ajax.reload();"}]}}');
-		//{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"close_layer({type: 1});pop_msg(show_msg('-1', {\"target\":\"kangGameCategoryInfo\"}));grid.getDataTable().ajax.reload();"}]}}
+		$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"close_layer({type: 1});pop_msg(show_msg(\'-1\', {\"target\":\"kangGameCategoryInfo\"}));grid.getDataTable().ajax.reload();"}]}}');
+		
 		return $response->withJson($msg);
 	}
 
@@ -318,7 +333,7 @@ class Game extends AdminBase
 		}
 
 		$data->name = $post['mark_name']['tw'];
-		$data->operator = 'admin';
+		$data->operator = $_SESSION['username'];
 		$data->save();
 		if($id > 0)
 			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"close_layer({type: 1});pop_msg(show_msg(\'-2\', {\"target\":\"kangGameMark\"}));grid.getDataTable().ajax.reload();"}]}}');

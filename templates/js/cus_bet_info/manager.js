@@ -97,13 +97,13 @@ function datetime_picker_init() {
 
 function change_game_store(){
 	var edit_game_store = $("select[name=search_game_store]").val();
-	requestJSON("cus_bet_info_op.php", "pdisplay=change_game_store", "edit_game_store=" + edit_game_store);
+	requestJSON("/agent/cus_bet_info_op", "pdisplay=change_game_store", "edit_game_store=" + edit_game_store);
 }
 
 function show_order_content_detail(e){
 	var game_store = $(e).attr("game_store");
 	var order_id = $(e).attr("order_id");
-	requestJSON("cus_bet_info_op.php", "pdisplay=show_order_content_detail", "game_store=" + game_store + "&order_id=" + order_id, "");
+	requestJSON("/agent/cus_bet_info_op", "pdisplay=show_order_content_detail", "game_store=" + game_store + "&order_id=" + order_id, "");
 }
 
 function select_page(select_page){
@@ -237,7 +237,8 @@ $(".btn_thisweek").click(function(){
 	if(now_day_of_week == 0)
 		now_day_of_week = 7;
 	var sd_date = new Date(Today-now_day_of_week*86400000+86400000).Format("yyyy-MM-dd");
-	var ed_date = new Date(Today.getFullYear(),Today.getMonth(),Today.getDate()).Format("yyyy-MM-dd");
+	var sd = new Date(sd_date);
+	var ed_date = new Date(sd.setDate(sd.getDate() + 6)).Format("yyyy-MM-dd");
 	
 	$('.sddate').each(function(index, element) {
 		$(this).datepicker("setDate", sd_date);

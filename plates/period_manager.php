@@ -137,7 +137,12 @@ th
     
 	<div class="portlet-body">
 	   <div>
-		   <span class="red-txt pd-5">※未套用佣金規則：1212</span><br><span class="red-txt pd-5">※未套用退水規則：0.5</span><br><span class="red-txt pd-5">※未套用總輸贏規則：60%</span>
+		  
+		   <span class="red-txt pd-5">※未套用佣金規則： <?php foreach($cr as $item) { echo $item->name . ' , ';}?></span>
+		   <br>
+		   <span class="red-txt pd-5">※未套用退水規則： <?php foreach($rr as $item) { echo $item->name . ' , ';}?></span>
+		   <br>
+		   <span class="red-txt pd-5">※未套用總輸贏規則： <?php foreach($ecr as $item) { echo $item->name . ' , ';}?></span>
 	   </div>
        <div id="sample_2_wrapper" class="dataTables_wrapper">
 			<div class="table-container">

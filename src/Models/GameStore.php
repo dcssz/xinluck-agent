@@ -10,4 +10,9 @@ Class GameStore extends Model
     use SoftDeletes;
     protected $table = 'game_stores';
     //protected $hidden = ['deleted_at'];
+
+    public function games()
+    {
+        return $this->hasMany('App\Models\Game');
+    }
 }

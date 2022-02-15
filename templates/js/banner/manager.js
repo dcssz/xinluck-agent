@@ -31,7 +31,8 @@ var TableDatatablesAjax = function () {
                 ],
                 "pageLength": 100, // default record count per page
                 "ajax": {
-                    "url": "/op/banner_op.php?pdisplay=display_manager_list&select_status=" + $("select[name=select_status]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
+					"type":"get",
+                    "url": "/admin/banner_op?pdisplay=display_manager_list&select_status=" + $("select[name=select_status]").val() + "&edit_unique_code=" + $("#edit-unique-code").val(), // ajax source
 					/*"data": {"select_station_code" : $("select[name=select_station_code]").val(),
 							"select_status" : $("select[name=select_status]").val()},*/
                 },
@@ -79,18 +80,18 @@ $(function(){
     TableDatatablesAjax.init();
 	
 	$(".search-btn").click(function(){
-		grid.getDataTable().ajax.url("/op/banner_op.php?pdisplay=display_manager_list&select_status=" + $("select[name=select_status]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
+		grid.getDataTable().ajax.url("/admin/banner_op?pdisplay=display_manager_list&select_status=" + $("select[name=select_status]").val() + "&edit_unique_code=" + $("#edit-unique-code").val()).load();
 	});
 });
 
 
 function delete_item(edit_bid){
 	if(confirm(change_lang_txt({"org_txt" : "確定要刪除"}) + "?")){
-		requestJSON("banner_op.php", "pdisplay=delete_item", "edit_bid=" + edit_bid);
+		requestJSON("/admin/banner_op", "pdisplay=delete_item", "edit_bid=" + edit_bid);
 	}
 }
 
 function add_banner(){
 	var edit_unique_code = $("#edit-unique-code").val();
-	location.href = "banner_editor.php?etype=add&edit_unique_code=" + edit_unique_code; 
+	location.href = "/admin/banner_editor?etype=add&edit_unique_code=" + edit_unique_code; 
 }

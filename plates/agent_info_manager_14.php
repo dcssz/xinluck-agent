@@ -105,8 +105,9 @@ th
 		<select name="search_commission_rule" is-search-data='1'>
 			<option value="-1">全部</option>
 			<!--slot=1-->
-
-	<option  value="7" > 1212</option>
+			<?php foreach ($commissionRules as $item) {?>
+				<option value="<?= $item->id ?>"> <?= $item->name?></option>
+			<?php }?>
 
 
 		</select>
@@ -116,8 +117,9 @@ th
 		<select name="search_retreat_rule" is-search-data='1'>
 			<option value="-1">全部</option>
 			<!--slot=1-->
-
-	<option  value="5" > 0.5</option>
+			<?php foreach ($retreatRules as $item) {?>
+				<option value="<?= $item->id ?>"> <?= $item->name?></option>
+			<?php }?>
 
 
 		</select>
@@ -127,9 +129,9 @@ th
 		<select name="search_extra_commission_rule" is-search-data='1'>
 			<option value="-1">全部</option>
 			<!--slot=1-->
-
-	<option  value="4" > 60%</option>
-
+			<?php foreach ($extraCommissionRules as $item) {?>
+				<option value="<?= $item->id ?>"> <?= $item->name?></option>
+			<?php }?>
 
 		</select>
     </div>
@@ -162,13 +164,13 @@ th
                 	<thead>
                     	<tr class="bg-green1 color-white nowrap">
                             <!--slot=3-->
-<th>總代理帳號</th>
-<th>狀態</th>
-<th>佣金規則</th>
-<th>退水規則</th>
-<th>總輸贏規則</th>
-<th>下線代理數</th>
-<th>下線會員數</th>
+							<th>總代理帳號</th>
+							<th>狀態</th>
+							<th>佣金規則</th>
+							<th>退水規則</th>
+							<th>總輸贏規則</th>
+							<th>下線代理數</th>
+							<th>下線會員數</th>
 
 							<th>帳戶餘額</th>
 							<th width="1px">建立時間</th>
