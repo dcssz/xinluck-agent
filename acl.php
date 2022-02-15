@@ -1,5 +1,5 @@
 <?php
-$allRoles = array('guest', 'customer', 'agent','admin');
+$allRoles = array('guest', 'customer', 'agent','topagent','admin');
 $adminRoles = array('admin');
 
 return [
@@ -8,6 +8,7 @@ return [
 		'guest' => [],
 		'admin' => [],
 		'customer' => [],
+		'topagent' => [],
 		'agent' => [],
 	],
 	'resources' => [
