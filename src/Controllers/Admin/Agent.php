@@ -47,7 +47,7 @@ class Agent extends AdminBase
 			return $this->view->render('agent_info_manager_15', [
 				"commissionRules" => $commissionRules,
 				"retreatRules" => $retreatRules,
-				"top_cus_id" => isset($get["top_cus_id"]) ? $get["top_cus_id"] : ''
+				"top_cus_id" => isset($get["top_cus_id"]) ? $get["top_cus_id"] : $_SESSION['id']
 			]);
 		}
         
@@ -70,8 +70,10 @@ class Agent extends AdminBase
 		
 		if ($edit_cus_level == 14) { //总代理
 			$where[] = array('role', 'topagent');
+			
 		} else { //代理
 			$where[] = array('role', 'agent');
+			$where[] = array('pid', $_SESSION['id']);
 		}
 		
 
@@ -126,17 +128,17 @@ class Agent extends AdminBase
 				$extraCommissionRule = $data->extraCommissionRule ? $data->extraCommissionRule->name : "";
 
 				$child_count = UserModel::where('role', 'agent')->where('pid', $data->id)->count();
-				$child_count = "<a href=\"/admin/agent_info_manager?edit_cus_level=15&search_customer_userid={$data->username}&search_level=14&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_count}</a>";
+				$child_count = "<a href=\"/agent/agent_info_manager?edit_cus_level=15&search_customer_userid={$data->username}&search_level=14&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_count}</a>";
 				//"<a href=\"agent_info_manager.php?edit_cus_level=15&search_customer_userid=jeffrey&search_level=14&top_cus_id=39&edit_station_code=3&is_back=1\">1</a>"
 				$child_member_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
-				$child_member_count = "<a href=\"/admin/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=14&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
+				$child_member_count = "<a href=\"/agent/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=14&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
 				//"<a href=\"cus_info_manager.php?edit_cus_level=16&search_customer_userid=jeffrey&search_level=14&top_cus_id=39&edit_station_code=3&is_back=1\">19</a>"
 				$balance = $data->balance;
 				$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}</a>";
 	
 				$created_at = "<div align= center>".$data->created_at."</div>";
 				$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
-				$action .= "<a href=\"/admin/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=14\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+				$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=14\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
 				$action .= "<a href=\"cus_info_log_list?user_id={$data->id}&is_back=1\"  class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>\n\t\t\t\t\t\t\t\t";
 
 				$formatItem = array();
@@ -170,14 +172,14 @@ class Agent extends AdminBase
 				$commissionRule = $data->commissionRule ? $data->commissionRule->name : "";
 				$retreatRule = $data->retreatRule ? $data->retreatRule->name : "";
 				$child_member_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
-				$child_member_count = "<a href=\"/admin/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=15&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
+				$child_member_count = "<a href=\"/agent/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=15&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
 				//"<a href=\"cus_info_manager.php?edit_cus_level=16&search_customer_userid=jeffrey1&search_level=15&top_cus_id=51&edit_station_code=3&is_back=1\">1</a>"
 				$balance = $data->balance;
 				$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}</a>";
 	
 				$created_at = "<div align= center>".$data->created_at."</div>";
 				$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
-				$action .= "<a href=\"/admin/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+				$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
 				$action .= "<a href=\"cus_info_log_list?user_id={$data->id}&is_back=1\"  class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>\n\t\t\t\t\t\t\t\t";
 
 				$formatItem = array();
@@ -221,7 +223,7 @@ class Agent extends AdminBase
 		} else {
 			//新增
 			$agent = new UserModel;
-			$top_cus_id = isset($get['top_cus_id']) ? $get['top_cus_id'] : 1;
+			$top_cus_id = $_SESSION['id'];
 		}
 		
 		$commissionRules = CommissionRuleModel::all();

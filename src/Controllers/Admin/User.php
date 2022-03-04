@@ -172,10 +172,11 @@ class User extends AdminBase
 		if ($get['search_order_by_field'] == 'create_datetime') {
 			$field = 'created_at';
 		}
-
-		if (isset($get['top_cus_id']) && $get['top_cus_id'] != '') {
-			$where[] = array('pid', $get['top_cus_id']);
-		}
+		
+		$where[] = array('parents', 'like','%/'.$_SESSION['id'].'/%');
+		 
+		
+		 
 		
 		$order = $get['search_order_by'];
 		

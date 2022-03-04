@@ -52,8 +52,17 @@ class Report extends AdminBase
 		$length = 10;
 		if(isset($get['length']))
 			$length = intval($get['length']);
+		
+		 
+		$users = User::select('username')->where('parents','like','%/'.$_SESSION['id'].'/%')->get();
+		$usernames = array();
+		foreach($users as $user){
+			$usernames[] = $user->username;
+		} 
+		
+		 
 
-		$rows = UserMoney::select('username','operate_type','trans_type','reason','assets','money','balance','operator','updated_at','id')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		$rows = UserMoney::select('username','operate_type','trans_type','reason','assets','money','balance','operator','updated_at','id')->whereIn('username',$usernames)->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
 		$result = array();
 		$all_trans_quota = 0;
 		foreach($rows as $row){
@@ -97,7 +106,7 @@ class Report extends AdminBase
 		}
 		
 		//$news = $news->toArray();
-		$count = UserMoney::where($where)->count();
+		$count = UserMoney::where($where)->whereIn('username',$usernames)->count();
 		if($result == null)$result = [];
 		$draw = 1;
 		if(isset($get['draw']))
@@ -146,7 +155,14 @@ class Report extends AdminBase
 		if(isset($get['length']))
 			$length = intval($get['length']);
 
-		$rows = UserMoney::with('user')->select('username','operate_type','trans_type','reason','assets','money','balance','operator','updated_at','id')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+
+		$users = User::select('username')->where('parents','like','%/'.$_SESSION['id'].'/%')->get();
+		$usernames = array();
+		foreach($users as $user){
+			$usernames[] = $user->username;
+		} 
+		
+		$rows = UserMoney::with('user')->select('username','operate_type','trans_type','reason','assets','money','balance','operator','updated_at','id')->whereIn('username',$usernames)->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
 		$result = array();
 	 
 		foreach($rows as $row){
@@ -189,7 +205,7 @@ class Report extends AdminBase
 		}
 		
 		//$news = $news->toArray();
-		$count = UserMoney::where($where)->count();
+		$count = UserMoney::where($where)->whereIn('username',$usernames)->count();
 		if($result == null)$result = [];
 		$draw = 1;
 		if(isset($get['draw']))

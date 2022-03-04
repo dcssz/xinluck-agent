@@ -40,7 +40,7 @@ var TableDatatablesAjax = function () {
                 "ajax": {
                    // "url": "/op/cus_info_manager_op.php?pdisplay=display_manager_list&search_customer_userid=" + $("input[name=search_customer_userid]").val() + "&search_level=" + $("select[name=search_level]").val() + "&edit_cus_level=" + $("#edit-cus-level").val()  + "&top_cus_id=" + $("#top-cus-id").val() + "&edit_station_code=" + $("#edit-station-code").val(), // ajax source
 				   "type": "get",
-				   "url": "/admin/list_cus_infos?pdisplay=display_manager_list&" + $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&top_cus_id=" + $("#top-cus-id").val() + "&edit_station_code=" + $("#edit-station-code").val(), 
+				   "url": "/agent/list_cus_infos?pdisplay=display_manager_list&" + $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&top_cus_id=" + $("#top-cus-id").val() + "&edit_station_code=" + $("#edit-station-code").val(), 
                 },
 				 "bSort": false,
                 /*"order": [
@@ -87,7 +87,7 @@ $(function(){
 	$(".search-btn").click(function(){
 		//grid.getDataTable().ajax.url("/op/cus_info_manager_op.php?pdisplay=display_manager_list&search_customer_userid=" + $("input[name=search_customer_userid]").val() + "&fuzzy_search=" + ($("input[name=fuzzy_search]").prop("checked") ? "1" : "0") + "&search_level=" + $("select[name=search_level]").val() + "&search_status=" + $("select[name=search_status]").val() + "&search_grade=" + $("select[name=search_grade]").val() + "&search_invite_code=" + $("input[name=search_invite_code]").val() + "&search_customer_name=" + $("input[name=search_customer_name]").val() + "&search_cell_phone=" + $("input[name=search_cell_phone]").val() + "&search_mark=" + $("select[name=search_mark]").val() + "&search_order_by=" + $("select[name=search_order_by]").val() + "&search_order_by_field=" + $("select[name=search_order_by_field]").val()).load();
 		var param = $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&edit_station_code=-1";
-		grid.getDataTable().ajax.url("/admin/list_cus_infos?pdisplay=display_manager_list&" + param).load();
+		grid.getDataTable().ajax.url("/agent/list_cus_infos?pdisplay=display_manager_list&" + param).load();
 		
 		//param = param + "&edit_station_code=" + $(".station-btn.active").attr("station-code");
 		var _id = parent.window.currentFrame;
@@ -100,7 +100,7 @@ function add_cus(){
 	var edit_cus_level = $("#edit-cus-level").val();
 	var edit_station_code = $("#edit-station-code").val();
 	var top_cus_id = $("#top-cus-id").val();
-	location.href = "/admin/cus_info_editor?etype=add&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id;
+	location.href = "/agent/cus_info_editor?etype=add&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id;
 }
 
 function request_invitee_info_div(edit_cus_id){
@@ -137,7 +137,7 @@ function request_identity_ver_div(edit_cus_id){
 	$('#preview-pic-2').html('');
 	$('#preview-pic-3').html('');
 	$.ajax({
-		url:'/admin/cus_info_manager_op?pdisplay=request_identity_ver_div',
+		url:'/agent/cus_info_manager_op?pdisplay=request_identity_ver_div',
 		type:'post',
 		data:{
 			edit_cus_id:edit_cus_id

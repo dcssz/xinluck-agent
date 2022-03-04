@@ -197,11 +197,11 @@ label{
   <tbody>
     <tr>             
       <td class="title">總代理&nbsp;帳號</td>
-      <td >bright09</td>
+      <td ><?=$agent->username?></td>
     </tr>
     <tr>
       <td class="title">總代理&nbsp;名稱</td>
-      <td>財測試</td>
+      <td><?=$agent->nickname?></td>
     </tr>
     <tr>
       <td class="title">狀態設定</td>
@@ -212,7 +212,7 @@ label{
     <tr>
         <td class="title">點數額度</td>
         <td>
-            0
+            <?=$agent->balance?>
         </td>
     </tr>
     <tr>
@@ -241,11 +241,11 @@ label{
     </tr>
 	<tr>
       <td class="title">邀請碼</td>
-      <td>cL4zi6i1MN</td>
+      <td><?=$agent->invite_code?></td>
     </tr> 
     <tr>
       <td class="title">推廣連結</td>
-      <td><a href='javascript:void(0);' onclick='copy_link(this);'>https://bright168.com/sty2_home.php?invite_code=cL4zi6i1MN</a></td>
+      <td><a href='javascript:void(0);' onclick='copy_link(this);'><?=$frontUrl?>?invite_code=<?=$agent->invite_code?></a></td>
     </tr>
     <tr>
       <td class="title">備註</td>
@@ -253,11 +253,11 @@ label{
     </tr>
     <tr>
       <td class="title">建立/修改時間</td>
-      <td>建立: 2021-12-07 21:16:43<br> 修改: 2021-12-07 21:16:43</td>
+      <td>建立: <?=$agent->created_at?><br> 修改: <?=$agent->updated_at?></td>
     </tr>
     <tr>
       <td class="title">最後登入</td>
-      <td>時間: 2021-12-15 16:08:01<br>IP: *.*.96.120</td>
+      <td>時間: <?=date('Y-m-d H:i:s',$agent->lgtime)?><br>IP: <?=$agent->lgip?></td>
     </tr>
   </tbody>
 </table>

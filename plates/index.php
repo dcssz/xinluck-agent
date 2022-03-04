@@ -117,7 +117,7 @@ $(function(){
     </li>
 	
     <li class="nav-item ">
-        <a href="javascript:void(0);" class="nav-link " title_name="子帳號" onclick="show_page(this, 'sub_customer_manager', '/agent/sub_customer_manager')">
+        <a href="javascript:void(0);" class="nav-link " title_name="子帳號" onclick="alert('建置中。。。');return;show_page(this, 'sub_customer_manager', '/agent/sub_customer_manager')">
             <i class=""></i>
             <span class="title">子帳號</span>
             

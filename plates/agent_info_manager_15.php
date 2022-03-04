@@ -152,7 +152,7 @@ th
 			<i class="fa fa-group font-green-sharp"></i>
 			<span class="caption-subject font-green-sharp bold uppercase">代理管理 - 代理設定</span>
 		</div>
-        <button class="btn red add-agent-btn hidden" onclick="add_agent()">新增</button>
+        <button class="btn red add-agent-btn" onclick="add_agent()">新增</button>
 	</div>
     
 	<div class="portlet-body">

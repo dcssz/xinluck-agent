@@ -566,7 +566,7 @@ $(function(){
      var edit_cus_level = $('#edit-cus-level').val();
      var edit_station_code = $('#edit-station-code').val();
      var top_cus_id = $('#top-cus-id').val();
-     requestJSON("/admin/save_agent_info", "pdisplay=save_customer", "save_type=" + save_type + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id, $("#" + save_type + "-area form"));
+     requestJSON("/agent/save_agent_info", "pdisplay=save_customer", "save_type=" + save_type + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id, $("#" + save_type + "-area form"));
      $('#customer_pass1').val('');
      $('#customer_pass2').val('');
  }

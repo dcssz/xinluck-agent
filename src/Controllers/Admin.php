@@ -461,7 +461,11 @@ class Admin extends AdminBase
 		}
 		//if(isset($get['search_customer_userid']))
 		//	$where[] = array('game_username','like','%'.$get['search_customer_userid'].'%');
-		$summarys = Bet::with('game')->select(
+		 
+		$id = $_SESSION['id'];
+		$summarys = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->with('game')->select(
 			DB::raw("DATE_FORMAT({$dateTimeColumn},'%Y-%m-%d') as calDay"),
 			DB::raw('count(id) as Cnt'),
 			DB::raw('SUM(Amount) as totalAmount'),
@@ -515,7 +519,10 @@ class Admin extends AdminBase
 			$where[] = array($dateTimeColumn,'<=',$eddate.' 23:59');
 		}
 		
-		$summarys = Bet::with('user')->select(
+		$id = $_SESSION['id'];
+		$summarys = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->with('user')->select(
 			'user_id',
 			DB::raw("DATE_FORMAT({$dateTimeColumn},'%Y-%m-%d') as calDay"),
 			DB::raw('count(id) as Cnt'),
@@ -568,7 +575,10 @@ class Admin extends AdminBase
 			$where[] = array($dateTimeColumn,'<=',$get['eddate'].' 23:59');
 		//if(isset($get['search_customer_userid']))
 		//	$where[] = array('game_username','like','%'.$get['search_customer_userid'].'%');
-		$summarys = Bet::with('game')->select(
+		$id = $_SESSION['id'];
+		$summarys = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->with('game')->select(
 			'game_id',  
 			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
 			DB::raw('count(id) as Cnt'),
@@ -610,8 +620,10 @@ class Admin extends AdminBase
 		$length = 10;
 		if(isset($get['length']))
 			$length = intval($get['length']);
-		
-		$bets = Bet::with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		$id = $_SESSION['id'];
+		$bets = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
 		$totalRows = Bet::with('game')->where($where)->count();
 		$totalPages = ceil($totalRows / $length);
 
@@ -683,11 +695,16 @@ class Admin extends AdminBase
 		if(isset($get['length']))
 			$length = intval($get['length']);
 		
-		$bets = Bet::with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		$id = $_SESSION['id'];
+		$bets = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
 		$totalRows = Bet::with('game')->where($where)->count();
 		$totalPages = ceil($totalRows / $length);
 		
-		$summarys = Bet::select(
+		$summarys = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->select(
 			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
 			DB::raw('count(id) as Cnt'),
 			DB::raw('SUM(Amount) as totalAmount'),
@@ -743,8 +760,10 @@ class Admin extends AdminBase
 			$where[] = array($dateTimeColumn,'>=',$get['sddate'].' 00:00');
 		if(isset($get['eddate']))
 			$where[] = array($dateTimeColumn,'<=',$get['eddate'].' 23:59');
-
-		$summarys = Bet::with(['user'=>function($query) use ($search_customer_userid){
+		$id = $_SESSION['id'];
+		$summarys = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->with(['user'=>function($query) use ($search_customer_userid){
 				return $query->with('upper');
 			}])->select(
 			'user_id',  
@@ -795,9 +814,11 @@ class Admin extends AdminBase
         return $this->view->render('sys_func_set_manager');
 	}
 	
-		public function personal_info($request, $response)
+	public function personal_info($request, $response)
     {
-        return $this->view->render('personal_info');
+		$agent = User::where('id',$_SESSION['id'])->first();
+		$frontUrl = ConfigModel::where('name','frontUrl')->pluck('value')->first();
+        return $this->view->render('personal_info',['agent'=>$agent,'frontUrl'=>$frontUrl]);
 	}
 		public function agent_info_manager($request, $response)
     {

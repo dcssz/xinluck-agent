@@ -175,7 +175,7 @@ td
 					<tr>
 						<td><?=$bet->user->username?></td>
 						<td><?=$bet->upper?></td>
-						<td><a href="/admin/cus_bet_info_manager"><?=$bet->Cnt?></a></td>
+						<td><a href="cus_bet_info_manager"><?=$bet->Cnt?></a></td>
 						<td><?=$bet->totalAmount?></td>
 						<td><?=$bet->totalValidAmount?></td>
 						<td><?=$bet->totalWinlose?></td>
