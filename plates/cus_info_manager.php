@@ -267,7 +267,7 @@ th
 			<span class="caption-subject font-green-sharp bold uppercase">會員管理 - 會員設定</span>
 			<span class="caption-subject bold uppercase mr-l-20 hidden">總會員數：</span>
 		</div>
-        <button class="btn red add-cus-btn hidden" onclick="add_cus()">新增</button>
+        <button class="btn red add-cus-btn" onclick="add_cus()">新增</button>
 	</div>
     
 	<div class="portlet-body">

@@ -6,7 +6,7 @@ use stdClass;
 use Interop\Container\ContainerInterface;
 use App\Extensions\AdminBase;
 use App\Extensions\Functions;
-use App\Extensions\LoginUtil;
+
 use App\GameApp\GameFactory;
 use App\Models\User as UserModel;
 use App\Models\UserMoney as UserMoney;
@@ -560,9 +560,10 @@ class User extends AdminBase
 			$user->username = $post['customer_userid'];
 			$user->password = crypt($post['customer_pass1'], '$1$' . substr(md5($post['customer_userid']), 5, 8));
 			$user->level = 0;
-			$user->pid = $post['top_cus_id'];
-			$top_parent = UserModel::find($post['top_cus_id']);
-			$user->parents = $top_parent->parents . $post['top_cus_id'] ."/";
+			$loginId = $_SESSION['id'];
+			$user->pid = $loginId; //$post['top_cus_id'];
+			$top_parent = UserModel::find($loginId);
+			$user->parents = $top_parent->parents . $loginId ."/";
 			
 			$user->role = "customer";
 		}

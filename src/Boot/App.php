@@ -138,6 +138,11 @@ class App extends \Slim\App {
 			$this->get('/agent/personal_info', \App\Controllers\Admin::class . ':personal_info');
 		 
 			$this->get('/agent/cus_info_manager', \App\Controllers\Admin::class . ':cus_info_manager');
+			
+			$this->any('/agent/cus_info_editor', \App\Controllers\Admin\User::class . ':cusInfoEditor');
+			$this->any('/agent/cus_info_editor_op', \App\Controllers\Admin\User::class . ':cusInfoEditorOp');
+			$this->post('/agent/save_customer', \App\Controllers\Admin\User::class . ':saveCustomer');
+			
 			$this->get('/agent/list_cus_infos', \App\Controllers\Admin\User::class . ':listCusInfos');
 			$this->get('/agent/sub_customer_manager', \App\Controllers\Admin::class . ':sub_customer_manager');
 			$this->get('/agent/cus_bank_info', \App\Controllers\Admin::class . ':cus_bank_info');

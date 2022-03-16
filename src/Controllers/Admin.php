@@ -17,7 +17,7 @@ use App\Models\Bet;
 use App\Models\UserMoney;
 use App\Models\Menu;
 use App\Models\SystemNotice;
-use App\Models\UserBank;
+use App\Models\UserBank; 
 use App\Models\Banner;
 use App\Models\BannerLocal;
 use App\Models\Payment;
@@ -25,6 +25,8 @@ use App\Models\DiscountCategory;
 use App\Models\Discount;
 use App\Models\DiscountLocal;
 use App\Models\WithdrawAudit;
+use App\Models\UserIp;
+use App\Extensions\Util;
 class Admin extends AdminBase
 {
 	public function __Construct(ContainerInterface $container)
@@ -253,8 +255,28 @@ class Admin extends AdminBase
 		$where[]=array('password',$password);
         $user = User::select('id','username','nickname','role')->where($where)->first();
 		if($user == null){
-			 
+			
 			return $response->withRedirect('/agent/login');
+		}
+		//die(json_encode($user->id));
+		
+		 //检测IP是否锁定 
+		$userIp = UserIp::where('ip', Util::ip())->where('user_id',$user->id)->orderBy('id','desc')->first();
+		
+		if($userIp != null){
+			if($userIp->status != 100){
+				$ajaxdata =  '<script>alert("IP锁定");history.back();</script>';//['spanid'=>'javascript','rtntext'=>"alert('帐密有误')"];
+				die($ajaxdata);
+			}
+		}
+		 
+		
+		if($userIp == null){
+			$userIp = new UserIp;
+			$userIp->user_id = $user->id;
+			$userIp->ip =  Util::ip();
+			$userIp->status =  100;
+			$userIp->save();
 		}
 		$_SESSION['id'] = $user->id;
 		$_SESSION['username'] = $user->username;

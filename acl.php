@@ -117,6 +117,12 @@ return [
 			['/agent/personal_info', $allRoles, ['get']],
 			['/agent/cus_info_manager', $allRoles, ['get']],
 			['/agent/list_cus_infos', $allRoles, ['get']],
+			
+			['/agent/cus_info_editor', $allRoles, ['get', 'post']],
+			['/agent/cus_info_editor_op', $allRoles, ['get', 'post']],
+			['/agent/save_customer', $allRoles, ['get', 'post']],
+			
+			
 			['/agent/sub_customer_manager', $allRoles, ['get']],
 			['/agent/cus_bank_info', $allRoles, ['get']],
 			['/agent/cus_withdraw', $allRoles, ['get']],

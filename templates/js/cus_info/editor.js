@@ -534,7 +534,7 @@ function show_data_content(el_this, area_id){
 		var edit_cus_id = $('#edit-cus-id').val();
 		var edit_cus_level = $('#edit-cus-level').val();
 		var top_cus_id = $('#top-cus-id').val();
-		requestJSON("/admin/cus_info_editor", "pdisplay=get_data_content", "area_id=" + area_id + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&top_cus_id=" + top_cus_id);
+		requestJSON("/agent/cus_info_editor", "pdisplay=get_data_content", "area_id=" + area_id + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&top_cus_id=" + top_cus_id);
 		el_area.removeClass('hidden');
 	}else{
 		el_area.removeClass('hidden');
@@ -569,7 +569,7 @@ function save_customer(save_type){
 	var edit_cus_level = $('#edit-cus-level').val();
 	var edit_station_code = $('#edit-station-code').val();
 	var top_cus_id = $('#top-cus-id').val();
-	requestJSON("/admin/save_customer", "pdisplay=save_customer", "save_type=" + save_type + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id, $("#" + save_type + "-area form"));
+	requestJSON("/agent/save_customer", "pdisplay=save_customer", "save_type=" + save_type + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&edit_station_code=" + edit_station_code + "&top_cus_id=" + top_cus_id, $("#" + save_type + "-area form"));
 	$('#customer_pass1').val('');
 	$('#customer_pass2').val('');
 }
