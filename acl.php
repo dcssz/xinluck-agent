@@ -108,6 +108,11 @@ return [
 			['/agent/cus_report_manager', $allRoles, ['get']],
 			['/agent/agent_report_manager', $allRoles, ['get']],
 			['/agent/change_order_logs_manager', $allRoles, ['get']],
+			['/agent/cus_bet_report_manager', $allRoles, ['get']],
+			['/agent/cus_bet_report_op', $allRoles, ['get', 'post']],
+			['/agent/team_report_manager', $allRoles, ['get']],
+			['/agent/team_report_water_op', $allRoles, ['get', 'post']],
+			['/agent/team_report_take_op', $allRoles, ['get', 'post']],
 			//系統管理
 			['/agent/cus_ip_manager', $allRoles, ['get']],
 			['/agent/employee_manager', $allRoles, ['get']],
@@ -115,8 +120,10 @@ return [
 			
 			
 			['/agent/personal_info', $allRoles, ['get']],
+			['/agent/personal_info_op', $allRoles, ['get', 'post']],
 			['/agent/cus_info_manager', $allRoles, ['get']],
 			['/agent/list_cus_infos', $allRoles, ['get']],
+			['/agent/personal_overview', $allRoles, ['get']],
 			
 			['/agent/cus_info_editor', $allRoles, ['get', 'post']],
 			['/agent/cus_info_editor_op', $allRoles, ['get', 'post']],
@@ -124,10 +131,15 @@ return [
 			
 			
 			['/agent/sub_customer_manager', $allRoles, ['get']],
+			['/agent/sub_customer_op', $allRoles, ['get','post']],
+			['/agent/sub_customer_editor', $allRoles, ['get']],
 			['/agent/cus_bank_info', $allRoles, ['get']],
+			['/agent/cus_bank_info_op', $allRoles, ['get','post']],
 			['/agent/cus_withdraw', $allRoles, ['get']],
+			['/agent/cus_withdraw_op', $allRoles, ['get','post']],
 			['/agent/online_cus_manager', $allRoles, ['get']],
 			['/agent/self_quota_log_manager', $allRoles, ['get']],
+			['/agent/self_quota_log_op', $allRoles, ['get','post']],
 		],
 	],
 ];

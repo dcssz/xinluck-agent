@@ -97,7 +97,15 @@ $(function(){
         </a>
         
     </li>
-	
+    <li class="nav-item ">
+        <a href="javascript:void(0);" class="nav-link " title_name="個人總覽" onclick="show_page(this, 'personal_overview', '/agent/personal_overview')">
+            <i class=""></i>
+            <span class="title">個人總覽</span>
+            
+        </a>
+        
+    </li>
+	<?php if ($_SESSION['role'] == 'topagent' || $_SESSION['role'] == 'agent') { ?>
     <li class="nav-item ">
         <a href="javascript:void(0);" class="nav-link " title_name="代理" onclick="show_page(this, 'agent_info_manager_15', '/agent/agent_info_manager?edit_cus_level=15')">
             <i class=""></i>
@@ -106,7 +114,7 @@ $(function(){
         </a>
         
     </li>
-	
+	<?php } ?>
     <li class="nav-item ">
         <a href="javascript:void(0);" class="nav-link " title_name="會員" onclick="show_page(this, 'cus_info_manager', '/agent/cus_info_manager?edit_cus_level=16')">
             <i class=""></i>
@@ -115,16 +123,16 @@ $(function(){
         </a>
         
     </li>
-	
+	<?php if ($_SESSION['isChild'] == 0) { ?>
     <li class="nav-item ">
-        <a href="javascript:void(0);" class="nav-link " title_name="子帳號" onclick="alert('建置中。。。');return;show_page(this, 'sub_customer_manager', '/agent/sub_customer_manager')">
+        <a href="javascript:void(0);" class="nav-link " title_name="子帳號" onclick="show_page(this, 'sub_customer_manager', '/agent/sub_customer_manager')">
             <i class=""></i>
             <span class="title">子帳號</span>
             
         </a>
         
     </li>
-	
+	<?php } ?>
 </ul>
 
 </li>
@@ -148,7 +156,7 @@ $(function(){
         </a>
 
     </li>
-
+    <?php if ($_SESSION['role'] == 'topagent') { ?>
     <li class="nav-item ">
         <a href="javascript:void(0);" class="nav-link " title_name="代理資金明細報表" onclick="show_page(this, 'agent_quota_log_manager', '/agent/agent_quota_log_manager')">
             <i class=""></i>
@@ -157,7 +165,7 @@ $(function(){
         </a>
 
     </li>
-
+    <?php } ?>
     <li class="nav-item ">
         <a href="javascript:void(0);" class="nav-link " title_name="總報表" onclick="show_page(this, 'all_calc_report_manager', '/agent/all_calc_report_manager')">
             <i class=""></i>
@@ -203,6 +211,24 @@ $(function(){
 
     </li>
 
+    <li class="nav-item ">
+        <a href="javascript:void(0);" class="nav-link " title_name="會員帳變報表" onclick="show_page(this, 'cus_bet_report_manager', '/agent/cus_bet_report_manager')">
+            <i class=""></i>
+            <span class="title">會員帳變報表</span>
+
+        </a>
+
+    </li>
+
+    <li class="nav-item ">
+        <a href="javascript:void(0);" class="nav-link " title_name="團隊報表" onclick="show_page(this, 'team_report_manager', '/agent/team_report_manager')">
+            <i class=""></i>
+            <span class="title">團隊報表</span>
+
+        </a>
+
+    </li>
+
      
 </ul>
 
@@ -217,7 +243,7 @@ $(function(){
     </a>
     
 </li>
-
+<?php if ($_SESSION['isChild'] == 0) { ?>
 <li class="nav-item ">
     <a href="javascript:void(0);" class="nav-link nav-toggle" title_name="銀行卡" onclick="show_page(this, 'cus_bank_info', '/agent/cus_bank_info')">
         <i class=""></i>
@@ -237,6 +263,7 @@ $(function(){
     </a>
     
 </li>
+<?php } ?>
 <!--slot=1-->
 <li class="nav-item ">
     <a href="javascript:void(0);" class="nav-link nav-toggle" title_name="在線會員查詢" onclick="show_page(this, 'online_cus_manager', '/agent/online_cus_manager')">
@@ -248,6 +275,7 @@ $(function(){
     
 </li>
 <!--slot=1-->
+<?php if ($_SESSION['isChild'] == 0) { ?>
 <li class="nav-item ">
     <a href="javascript:void(0);" class="nav-link nav-toggle" title_name="資金明細" onclick="show_page(this, 'self_quota_log_manager', '/agent/self_quota_log_manager')">
         <i class=""></i>
@@ -257,7 +285,7 @@ $(function(){
     </a>
     
 </li>
- 
+<?php } ?>
 <!--slot=1-->
 <li class="nav-item ">
     <a href="logout" class="nav-link nav-toggle" title_name="登出" >

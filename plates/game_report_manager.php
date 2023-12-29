@@ -82,28 +82,44 @@ td
 		<div class="act-group">
 			<span>日期類型</span>&nbsp;
 			<select name="search_date_type">
-				<option value="1" >投注日期</option>
-				<option value="2" >結算日期</option>
-				<option value="3" >生效日期</option>
+				<option value="1" <?= $search_date_type == '1' ? "selected=true" : ''?>>投注日期</option>
+				<option value="2" <?= $search_date_type == '2' ? "selected=true" : ''?>>結算日期</option>
+				<option value="3" <?= $search_date_type == '3' ? "selected=true" : ''?>>生效日期</option>
 			</select>
 		</div>
 		<div class="act-group">
 			<div class="date-div">
 				<div>日期區間</div>&nbsp;
-				<div class="input-group input-small date date-picker sddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-start-date" name="sddate" value="<?=date('Y-m-d')?>" readonly>
+				<div class="input-group input-small date date-picker sddate" data-date="<?=$sddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-start-date" name="sddate" value="<?=$sddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
 						</button>
 					</span>
 				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-start-time" name="sdtime" value="<?=$sdtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
+						</button>
+					</span>
+				</div>
 				<div class="sign">~</div>
-				<div class="input-group input-small date date-picker eddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=date('Y-m-d')?>" readonly>
+				<div class="input-group input-small date date-picker eddate" data-date="<?=$eddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=$eddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
+						</button>
+					</span>
+				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-end-time" name="edtime" value="<?=$edtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
 						</button>
 					</span>
 				</div>

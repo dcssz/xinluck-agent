@@ -83,12 +83,28 @@ td
 						</button>
 					</span>
 				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-start-time" name="sdtime" value="<?=$sdtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
+						</button>
+					</span>
+				</div>
 				<div class="sign">~</div>
 				<div class="input-group input-small date date-picker eddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
 					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=date('Y-m-d')?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
+						</button>
+					</span>
+				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-end-time" name="edtime" value="<?=$edtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
 						</button>
 					</span>
 				</div>

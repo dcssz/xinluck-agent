@@ -26,6 +26,10 @@ use App\Models\Discount;
 use App\Models\DiscountLocal;
 use App\Models\WithdrawAudit;
 use App\Models\UserIp;
+use App\Models\CusBank;
+use App\Models\Withdraw;
+use App\Models\GameStoreType;
+
 use App\Extensions\Util;
 class Admin extends AdminBase
 {
@@ -230,7 +234,7 @@ class Admin extends AdminBase
 		 $_SESSION = array();
 		 /***删除sessin id.由于session默认是基于cookie的，所以使用setcookie删除包含session id的cookie.***/
 		 if (isset($_COOKIE[session_name()])) {
-			setcookie(session_name(), '', time()-42000, '/');
+			setcookie(session_name(), '', time()-420000, '/');
 		 }
 		unset($_SESSION['menus']);
 		unset($_SESSION['id']);
@@ -253,7 +257,10 @@ class Admin extends AdminBase
 		$where = array();
 		$where[]=array('username',$username);
 		$where[]=array('password',$password);
-        $user = User::select('id','username','nickname','role')->where($where)->first();
+		$where[]=array('role', '!=','admin');
+		$where[]=array('role', '!=','customer');
+        $user = User::select('id','username','nickname','role','valid','parentUid')->where($where)->first();
+
 		if($user == null){
 			
 			return $response->withRedirect('/agent/login');
@@ -269,6 +276,11 @@ class Admin extends AdminBase
 				die($ajaxdata);
 			}
 		}
+		
+		if($user->valid == 3 || $user->valid == 4){
+			$ajaxdata =  '<script>alert("帐密鎖定,請聯繫管理員");history.back();</script>';//['spanid'=>'javascript','rtntext'=>"alert('帐密有误')"];
+			die($ajaxdata);
+		}
 		 
 		
 		if($userIp == null){
@@ -278,10 +290,27 @@ class Admin extends AdminBase
 			$userIp->status =  100;
 			$userIp->save();
 		}
-		$_SESSION['id'] = $user->id;
-		$_SESSION['username'] = $user->username;
-		$_SESSION['nickname'] = $user->nickname;
-		$_SESSION['role'] = $user->role;
+		$user->lgtime = time();
+		$user->lgip = Util::ip();
+		$user->save();
+		if ($user->parentUid == 0) {
+			$_SESSION['id'] = $user->id;
+			$_SESSION['username'] = $user->username;
+			$_SESSION['nickname'] = $user->nickname;
+			$_SESSION['role'] = $user->role;
+			$_SESSION['isChild'] = 0;
+		} else {
+			//子账号
+			$top = User::find($user->parentUid);
+			$_SESSION['id'] = $top->id;
+			$_SESSION['username'] = $top->username;
+			$_SESSION['nickname'] = $top->nickname;
+			$_SESSION['role'] = $top->role;
+			$_SESSION['isChild'] = 1;
+			$_SESSION['childId'] = $user->id;
+			$_SESSION['childUsername'] = $user->username;
+		}
+		
 		return $response->withRedirect('/agent');
 	}
 
@@ -456,132 +485,13 @@ class Admin extends AdminBase
         return $this->view->render('agent_quota_log_manager');
 	}
 
-	public function allCalcReportManager($request, $response)
-    {
-		$get = $request->getQueryParams();
-		$where = array();
-		$where[] = array('flag',1);
-		$dateTimeColumn = 'bet_time';
-		if(isset($get['search_date_type'])){
-			$search_date_type = $get['search_date_type'];
-			if($search_date_type == '1') 
-				$dateTimeColumn = 'bet_time';
-			elseif($search_date_type == '2') 
-				$dateTimeColumn = 'draw_time';
-			elseif($search_date_type == '3') 
-				$dateTimeColumn = 'bet_time';
-		}
-		$sddate = date('Y-m-d');
-		$eddate = date('Y-m-d');
-		if(isset($get['sddate'])){
-			$sddate = $get['sddate'];
-			$where[] = array($dateTimeColumn,'>=',$sddate.' 00:00');
-		}
-		if(isset($get['eddate'])){
-			$eddate = $get['eddate'];
-			$where[] = array($dateTimeColumn,'<=',$eddate.' 23:59');
-		}
-		//if(isset($get['search_customer_userid']))
-		//	$where[] = array('game_username','like','%'.$get['search_customer_userid'].'%');
-		 
-		$id = $_SESSION['id'];
-		$summarys = Bet::whereHas('user',function($query) use ($id){
-			$query->where('parents','like','%/'.$id.'/%');
-		})->with('game')->select(
-			DB::raw("DATE_FORMAT({$dateTimeColumn},'%Y-%m-%d') as calDay"),
-			DB::raw('count(id) as Cnt'),
-			DB::raw('SUM(Amount) as totalAmount'),
-			DB::raw('SUM(valid_Amount) as totalValidAmount'),
-			DB::raw('SUM(winlose) as totalWinlose')
-		)->where($where)->groupBy('calDay')->orderBy('id', 'desc')->get();
-		
-		$allTotal = new \stdClass;
-		$allTotal->totalAmount = 0;
-		$allTotal->totalValidAmount = 0;
-		$allTotal->totalWinlose = 0;
-		$allTotal->Cnt = 0;
-		foreach($summarys as $summary){
-			//$summary->killRate = number_format(1 - $summary->loseCnt /   $summary->Cnt ,2) * 100;
-			$allTotal->totalAmount += $summary->totalAmount;
-			$allTotal->totalValidAmount += $summary->totalValidAmount;
-			$allTotal->totalWinlose += $summary->totalWinlose;
-			$allTotal->Cnt += $summary->Cnt;
-			 
-		}
-		//echo json_encode($summarys);
-        return $this->view->render('all_calc_report_manager',[
-			'sddate'=>$sddate,
-			'eddate'=>$eddate,
-			'summarys'=>$summarys,'allTotal'=>$allTotal
-		]);
-	}
-	public function allCalcAgentReportManager($request, $response)
-    {
-		$get = $request->getQueryParams();
-		$where = array();
-		$where[] = array('flag',1);
-		$dateTimeColumn = 'bet_time';
-		if(isset($get['search_date_type'])){
-			$search_date_type = $get['search_date_type'];
-			if($search_date_type == '1') 
-				$dateTimeColumn = 'bet_time';
-			elseif($search_date_type == '2') 
-				$dateTimeColumn = 'draw_time';
-			elseif($search_date_type == '3') 
-				$dateTimeColumn = 'bet_time';
-		}
-		$sddate = date('Y-m-d');
-		$eddate = date('Y-m-d');
-		if(isset($get['sddate'])){
-			$sddate = $get['sddate'];
-			$where[] = array($dateTimeColumn,'>=',$sddate.' 00:00');
-		}
-		if(isset($get['eddate'])){
-			$eddate = $get['eddate'];
-			$where[] = array($dateTimeColumn,'<=',$eddate.' 23:59');
-		}
-		
-		$id = $_SESSION['id'];
-		$summarys = Bet::whereHas('user',function($query) use ($id){
-			$query->where('parents','like','%/'.$id.'/%');
-		})->with('user')->select(
-			'user_id',
-			DB::raw("DATE_FORMAT({$dateTimeColumn},'%Y-%m-%d') as calDay"),
-			DB::raw('count(id) as Cnt'),
-			DB::raw('SUM(Amount) as totalAmount'),
-			DB::raw('SUM(valid_Amount) as totalValidAmount'),
-			DB::raw('SUM(winlose) as totalWinlose')
-		)->where($where)->groupBy('user_id')->orderBy('id', 'desc')->get();
-		
-		$allTotal = new \stdClass;
-		$allTotal->totalAmount = 0;
-		$allTotal->totalValidAmount = 0;
-		$allTotal->totalWinlose = 0;
-		$allTotal->Cnt = 0;
-		foreach($summarys as $summary){
-			//$summary->killRate = number_format(1 - $summary->loseCnt /   $summary->Cnt ,2) * 100;
-			$allTotal->totalAmount += $summary->totalAmount;
-			$allTotal->totalValidAmount += $summary->totalValidAmount;
-			$allTotal->totalWinlose += $summary->totalWinlose;
-			$allTotal->Cnt += $summary->Cnt;
-			 
-		}
-		
-		//echo json_encode($summarys);
-		
-        return $this->view->render('all_calc_agent_report_manager',[
-			'sddate'=>$sddate,
-			'eddate'=>$eddate,
-			'summarys'=>$summarys,
-			'allTotal'=>$allTotal
-		]);
-	}
 	public function gameReportManager($request, $response)
     {
 		$get = $request->getQueryParams();
 		$where = array();
 		$where[] = array('flag',1);
 		$search_date_type = 'bet_time';
+		$dateTimeColumn = 'bet_time';
 		if(isset($get['search_date_type'])){
 			$search_date_type = $get['search_date_type'];
 			if($search_date_type == '1') 
@@ -591,10 +501,12 @@ class Admin extends AdminBase
 			elseif($search_date_type == '3') 
 				$dateTimeColumn = 'bet_time';
 		}
-		if(isset($get['sddate']))
-			$where[] = array($dateTimeColumn,'>=',$get['sddate'].' 00:00');
-		if(isset($get['eddate']))
-			$where[] = array($dateTimeColumn,'<=',$get['eddate'].' 23:59');
+		$sddate = isset($get['sddate']) ? $get['sddate'] : date('Y-m-d');
+		$eddate = isset($get['eddate']) ? $get['eddate'] : date('Y-m-d');
+		$sdtime = isset($get['sdtime']) ? $get['sdtime'] : date('00:00:00');
+		$edtime = isset($get['edtime']) ? $get['edtime'] : date('23:59:59');
+		$where[] = array($dateTimeColumn,'>=',$sddate.' ' .$sdtime);
+		$where[] = array($dateTimeColumn,'<=',$eddate.' ' .$edtime);
 		//if(isset($get['search_customer_userid']))
 		//	$where[] = array('game_username','like','%'.$get['search_customer_userid'].'%');
 		$id = $_SESSION['id'];
@@ -615,7 +527,15 @@ class Admin extends AdminBase
 		}
 		
 		//echo json_encode($summarys);
-        return $this->view->render('game_report_manager',['summarys'=>$summarys]);
+        return $this->view->render('game_report_manager',[
+			'summarys'=>$summarys,
+			'search_date_type'=> isset($get['search_date_type']) ? $get['search_date_type'] : '1',
+			'search_game_store'=> isset($get['search_game_store']) ? $get['search_game_store'] : '-1',
+			'sddate'=>$sddate,
+			'eddate'=>$eddate,
+			'sdtime'=>$sdtime,
+			'edtime'=>$edtime
+		]);
 	}
 
 
@@ -632,8 +552,8 @@ class Admin extends AdminBase
 			}
 		}
 
-		//$where[] = array('created_at','>=','2021-12-01 00:00:00');
-		$where[] = array('flag',0);
+		$where[] = array('created_at','>=',date('Y-m-d H:i:s', strtotime(' -120 minute')));
+		//$where[] = array('flag',0);
 
 		$start = 0;
 		if(isset($get['start']))
@@ -645,11 +565,13 @@ class Admin extends AdminBase
 		$id = $_SESSION['id'];
 		$bets = Bet::whereHas('user',function($query) use ($id){
 			$query->where('parents','like','%/'.$id.'/%');
-		})->with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		})->with('game', 'user.upper')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
 		$totalRows = Bet::with('game')->where($where)->count();
 		$totalPages = ceil($totalRows / $length);
 
-		$summarys = Bet::select(
+		$summarys = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->select(
 			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
 			DB::raw('count(id) as Cnt'),
 			DB::raw('SUM(Amount) as totalAmount'),
@@ -698,16 +620,12 @@ class Admin extends AdminBase
 			$u = User::where('username', $get['search_customer_userid'])->where('role', 'customer')->first();
 			$where[] = array('user_id', $u['id']);
 		}
-		$sddate = date('Y-m-d');
-		$eddate = date('Y-m-d');
-		if(isset($get['sddate'])){
-			$sddate = $get['sddate'];
-		}
-		$where[] = array($dateTimeColumn,'>=',$sddate.' 00:00');
-		if(isset($get['eddate'])){
-			$eddate = $get['eddate'];
-		}
-		$where[] = array($dateTimeColumn,'<=',$eddate.' 23:59');
+		$sddate = isset($get['sddate']) ? $get['sddate'] : date('Y-m-d');
+		$eddate = isset($get['eddate']) ? $get['eddate'] : date('Y-m-d');
+		$sdtime = isset($get['sdtime']) ? $get['sdtime'] : date('00:00:00');
+		$edtime = isset($get['edtime']) ? $get['edtime'] : date('23:59:59');
+		$where[] = array($dateTimeColumn,'>=',$sddate.' ' .$sdtime);
+		$where[] = array($dateTimeColumn,'<=',$eddate.' ' .$edtime);
 
 		$start = 0;
 		if(isset($get['start']))
@@ -720,7 +638,7 @@ class Admin extends AdminBase
 		$id = $_SESSION['id'];
 		$bets = Bet::whereHas('user',function($query) use ($id){
 			$query->where('parents','like','%/'.$id.'/%');
-		})->with('game')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
+		})->with('game', 'user.upper')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
 		$totalRows = Bet::with('game')->where($where)->count();
 		$totalPages = ceil($totalRows / $length);
 		
@@ -743,6 +661,8 @@ class Admin extends AdminBase
         return $this->view->render('cus_bet_info_manager',[
 			'sddate'=>$sddate,
 			'eddate'=>$eddate,
+			'sdtime'=>$sdtime,
+			'edtime'=>$edtime,
 			'totalRows'=>$totalRows,
 			'totalPages'=>$totalPages,
 			'pageSize'=>$length,
@@ -769,6 +689,7 @@ class Admin extends AdminBase
 
 		$where[] = array('flag',1);
 		$search_date_type = 'bet_time';
+		$dateTimeColumn = 'bet_time';
 		if(isset($get['search_date_type'])){
 			$search_date_type = $get['search_date_type'];
 			if($search_date_type == '1') 
@@ -778,10 +699,12 @@ class Admin extends AdminBase
 			elseif($search_date_type == '3') 
 				$dateTimeColumn = 'bet_time';
 		}
-		if(isset($get['sddate']))
-			$where[] = array($dateTimeColumn,'>=',$get['sddate'].' 00:00');
-		if(isset($get['eddate']))
-			$where[] = array($dateTimeColumn,'<=',$get['eddate'].' 23:59');
+		$sddate = isset($get['sddate']) ? $get['sddate']:date('Y-m-d');
+		$eddate = isset($get['eddate']) ? $get['eddate']:date('Y-m-d');
+		$sdtime = isset($get['sdtime']) ? $get['sdtime'] : date('00:00:00');
+		$edtime = isset($get['edtime']) ? $get['edtime'] : date('23:59:59');
+		$where[] = array($dateTimeColumn,'>=',$sddate.' ' .$sdtime);
+		$where[] = array($dateTimeColumn,'<=',$eddate.' ' .$edtime);
 		$id = $_SESSION['id'];
 		$summarys = Bet::whereHas('user',function($query) use ($id){
 			$query->where('parents','like','%/'.$id.'/%');
@@ -807,7 +730,9 @@ class Admin extends AdminBase
 		//echo json_encode($summarys);
         return $this->view->render('cus_report_manager',[
 			'summarys'=>$summarys,
-			'search_customer_userid'=>$search_customer_userid
+			'search_customer_userid'=>$search_customer_userid,
+			'sdtime'=>$sdtime,
+			'edtime'=>$edtime,
 		]);
 	}
 
@@ -842,28 +767,643 @@ class Admin extends AdminBase
 		$frontUrl = ConfigModel::where('name','frontUrl')->pluck('value')->first();
         return $this->view->render('personal_info',['agent'=>$agent,'frontUrl'=>$frontUrl]);
 	}
-		public function agent_info_manager($request, $response)
+	public function personalInfoOp($request, $response)
+    {
+		$get = $request->getQueryParams();
+		$post = $request->getParsedBody();
+		$pdisplay = $get['pdisplay'];
+		
+		if ($pdisplay == 'update_password') {
+			$old_pass = $post['old_pass'];
+			$new_pass1 = $post['new_pass1'];
+			$new_pass2 = $post['new_pass2'];
+
+			if ($old_pass == '' || $new_pass1 == '' || $new_pass2 == '') {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'1\', {\"target\":\"kangPersonalInfo\"}));"}]}}');
+			}
+			if ($new_pass1 != $new_pass2) {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'3\', {\"target\":\"kangPersonalInfo\"}));"}]}}');
+			}
+			if (strlen($new_pass1) < 3) {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'4\', {\"target\":\"kangPersonalInfo\"}));"}]}}');
+			}
+			if ($_SESSION['isChild'] == 0) {
+				$username = $_SESSION['username'];
+			} else {
+				$username = $_SESSION['childUsername'];
+			}
+			$password = crypt($old_pass, '$1$' . substr(md5($username), 5, 8));
+			$where = array();
+			$where[]=array('username',$username);
+			$where[]=array('password',$password);
+			$user = User::where($where)->first();
+			if($user == null){
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'5\', {\"target\":\"kangPersonalInfo\"}));"}]}}');
+			}
+			$user->password = crypt($new_pass1, '$1$' . substr(md5($username), 5, 8));
+			$user->save();
+
+			die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangPersonalInfo\"}));"}]}}');
+		}
+	}
+
+	public function personal_overview($request, $response)
+	{
+		$get = $request->getQueryParams();
+
+		$begin = isset($get['startTime']) ? $get['startTime'] : date('Y-m-d 00:00:00');
+		$end = isset($get['endTime']) ? $get['endTime'] : date('Y-m-d 23:59:59');
+
+		if (isset($get['search_user_id'])) {
+			$user = User::find($get['search_user_id']);
+		} else {
+			$user = User::find($_SESSION['id']);
+		}
+		$game_store_types = GameStoreType::all();
+
+		$where =array();
+		$where[] = array('created_at','>=',$begin);
+		$where[] = array('created_at','<=',$end);
+		$where[] = array('user_id', $user->id);
+
+		// echo json_encode($where);
+		// return;
+		
+		foreach ($game_store_types as $row) {
+			$gameIds = $row->games->pluck('id');
+			
+			$bets = Bet::select([
+				DB::raw('IF(ISNULL(amount), 0, sum(amount)) as amount'),
+				DB::raw('IF(ISNULL(valid_amount), 0, sum(valid_amount)) as valid_amount'),
+				DB::raw('IF(ISNULL(winlose), 0, sum(winlose)) as winlose'),
+			])->whereIn('game_id', $gameIds)->where($where)->first();
+			
+			$row['betReports'] = $bets;
+		}
+
+		return $this->view->render('personal_overview', [
+			'sdate' =>date("Y-m-d", strtotime($begin)),
+			'stime' =>date("H:i:s", strtotime($begin)),
+			'edate' =>date("Y-m-d", strtotime($end)),
+			'etime' =>date("H:i:s", strtotime($end)),
+			'game_store_types' => $game_store_types,
+		]);
+	}
+	
+	public function agent_info_manager($request, $response)
     {
         return $this->view->render('agent_info_manager');
 	}
-		public function cus_info_manager($request, $response)
+	public function cus_info_manager($request, $response)
     {
         return $this->view->render('cus_info_manager');
 	}
-		public function sub_customer_manager($request, $response)
+	public function sub_customer_manager($request, $response)
     {
         return $this->view->render('sub_customer_manager');
 	}
-		public function cus_bank_info($request, $response)
+	public function subCustomerOp($request, $response, $args)
     {
-        return $this->view->render('cus_bank_info');
+		$get = $request->getQueryParams();
+		$post = $request->getParsedBody();
+		$pdisplay = $get['pdisplay'];
+		
+		if($pdisplay == 'display_manager_list'){
+
+			$where = array();
+			//$where[] = array('status',1);
+			$start = 0;
+			if(isset($get['start']))
+				$start = intval($get['start']);
+			
+			$length = 10;
+			if(isset($get['length']))
+				$length = intval($get['length']);
+			
+			$where[] = array('parentUid', $_SESSION['id']);
+			
+			
+			
+			
+			
+			$datas = User::where($where)->skip($start)->take($length)->get();
+			
+			
+			$result = array();
+			foreach($datas as $data){
+				$username = $data->username;
+				$name = $data->nickname;
+				$status = '<select class="form-control input-small" name="customer_status" onchange="update_sub_status(this.value,\''.$data->id.'\')">';
+				if ($data->valid == 1) {
+					$status .=		'<option value="1" selected="true">啟用
+					</option>
+					
+					<option value="3">鎖定
+					</option>';
+				} else {
+					$status .=		'<option value="1" >啟用
+					</option>
+					
+					<option value="3" selected="true">鎖定
+					</option>';
+				}
+				
+								
+				$status .=			'</select>';
+				$created_at = "<div align= center>".$data->created_at."</div>";
+				$action = '<button class="btn green" onclick="update_customer(\''.$data->id.'\')"> <i class="fa fa-pencil"></i> 修改</button>';
+				$action .= '<button class="btn red" onclick="delete_customer(\''.$data->id.'\')"> <i class="fa fa-trash-o"></i> 刪除</button>';
+
+				$formatItem = array();
+				$formatItem[] = $username;
+				$formatItem[] = $name;
+				$formatItem[] = $status;
+				$formatItem[] = $created_at;
+				$formatItem[] = $action;
+				$result[] = $formatItem;
+			}
+			
+			$count = User::where($where)->count();
+			if($result == null)$result = [];
+			$draw = 1;
+			if(isset($get['draw']))
+				$draw = intval($get['draw']);
+			$result = Functions::listData($draw ,$count,$count,$result);
+			return $response->withJson($result);
+		} elseif ($pdisplay == 'add_action') {
+			$etype = $post['etype'];
+			if ($etype == 'add') {
+				if (strlen($post['customer_userid']) < 3 ) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'7\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+					return $response->withJson($msg);
+				}
+				if (strlen($post['customer_pass']) < 3 ) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'2\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+					return $response->withJson($msg);
+				}
+				if ($post['customer_name'] == '') {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'8\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+					return $response->withJson($msg);
+				}
+				$exist = User::where('username', $post['customer_userid'])->first();
+				if ($exist) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'9\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+					return $response->withJson($msg);
+				}
+
+				$top = User::find($_SESSION['id']);
+				$agent = new User();
+				$agent->parentUid = $top->id;
+				$agent->username = $post['customer_userid'];
+				$agent->password = crypt($post['customer_pass'], '$1$' . substr(md5($post['customer_userid']), 5, 8));
+				$agent->nickname = $post['customer_name'];
+
+				$agent->level = $top->level + 1;
+				$agent->pid = $top->pid;
+				$agent->parents = $top->parents;
+				$agent->role = $top->role;
+				$agent->valid = 1;
+				$agent->has_control_perm = $top->has_control_perm;
+				$agent->fee_percent = $top->note;
+				$agent->note = $top->note;
+				$agent->save();
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"parent.grid.getDataTable().ajax.reload();parent.close_layer({type: 1});pop_msg(show_msg(\'-3\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+			} elseif ($etype == 'edit') {
+				if ($post['customer_name'] == '') {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'8\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+					return $response->withJson($msg);
+				}
+
+				$edit_cus_id = $post['edit_cus_id'];
+				$agent = User::find($edit_cus_id);
+				$agent->nickname = $post['customer_name'];
+				$agent->save();
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"parent.grid.getDataTable().ajax.reload();parent.close_layer({type: 1});pop_msg(show_msg(\'-1\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+			} 
+		} elseif ($pdisplay == 'delete_customer') {
+
+			$customer_id = $post['customer_id'];
+			$agent = User::find($customer_id);
+			$agent->delete();
+			die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"grid.getDataTable().ajax.reload();pop_msg(show_msg(\'-2\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+		} elseif ($pdisplay == 'update_sub_status') {
+
+			$customer_id = $post['customer_id'];
+			$agent = User::find($customer_id);
+			$agent->valid = $post['value'];
+			$agent->save();
+			die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"grid.getDataTable().ajax.reload();pop_msg(show_msg(\'-1\', {\"target\":\"kangSubCustomer\"}));"}]}}');
+		}
 	}
-		public function cus_withdraw($request, $response)
+	public function sub_customer_editor($request, $response)
     {
-        return $this->view->render('cus_withdraw');
+		$get = $request->getQueryParams();
+		$etype = $get['etype'];
+		
+		
+		
+		if ($etype == 'edit') {
+			//编辑
+			$edit_cus_id = $get['edit_cus_id'];
+			$agent = User::find(intval($get['edit_cus_id']));
+			
+		} else {
+			//新增
+			$agent = new User();
+		}
+
+        return $this->view->render('sub_customer_editor', [
+			'agent' => $agent,
+			'etype' => $etype,
+		]);
 	}
-		public function self_quota_log_manager($request, $response)
+	public function cus_bank_info($request, $response)
+    {
+		$banks = UserBank::where('user_id', $_SESSION['id'])->get();
+        return $this->view->render('cus_bank_info',[
+			'banks' => $banks
+		]);
+	}
+	public function cusBankInfoOp($request, $response)
+    {
+        $post = $request->getParsedBody();
+		$get = $request->getQueryParams();
+		 
+		$pdisplay = $get['pdisplay'];
+		$edit_id = $_SESSION['id'];
+
+		$balanceHtml = array();
+		if ($pdisplay == 'save_cus_bank_info') {
+			$bank_name = isset($post['bank_name']) ? $post['bank_name'] : '';
+			$bank_branch = isset($post['bank_branch']) ? $post['bank_branch'] : '';
+			$account_name = isset($post['account_name']) ? $post['account_name'] : '';
+			$bank_account = isset($post['bank_account']) ? $post['bank_account'] : '';
+
+			if ($bank_name == '') {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'100\', {\"target\":\"kangCusInfoEditor\"}));"}]}}');
+			}
+			if ($bank_branch == '') {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'103\', {\"target\":\"kangCusInfoEditor\"}));"}]}}');
+			}
+			if ($account_name == '') {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'104\', {\"target\":\"kangCusInfoEditor\"}));"}]}}');
+			}
+			if ($bank_account == '') {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'105\', {\"target\":\"kangCusInfoEditor\"}));"}]}}');
+			}
+			
+			$exist = UserBank::where('bank_account', $bank_account)->first();
+			if ($exist) {
+				die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"alert(\"银行卡号已注册过\");"}]}}');
+			}
+	 
+			$bank = new UserBank;
+			$bank->user_id = $edit_id;
+			$bank->status = 100;
+			$bank->created_at = date('Y-m-d H:i:s');
+			$bank->updated_at = date('Y-m-d H:i:s');
+			$bank->bank_area = '';
+			$bank->bank_name = $bank_name;
+			$bank->bank_branch = $bank_branch;
+			$bank->account_name = $account_name;
+			$bank->bank_account = $bank_account;
+			$bank->save();
+			
+			//system notice
+			$cnt = UserBank::where('status' ,'<=',2)->count();
+			$notice = SystemNotice::where('project','cus_bank_info_manager')->first();
+			if($notice != null){
+				$notice->cnt  = $cnt ;
+				$notice->save();
+			}
+			die('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangCusBankInfoManager\"}));location.reload()"}]}}');
+		} elseif ($pdisplay == 'request_cus_bank_info_detail') {
+			$info_id = $post['info_id'];
+
+			$bank = UserBank::find($info_id);
+			die('{"root":{"ajaxdata":[{"spanid":"#show-cus-bank-info-detail-area","rtntext":"<!--slot=1-->\n<table class=\"cus-bank-info-detail-tb\">\n\t<tr>\n\t\t<td class=\"title\">開戶銀行<\/td>\n\t\t<td>\n\t\t\t'.$bank->bank_name.'\n\t\t<\/td>\n\t<\/tr>\n\t<tr class=\"hidden\">\n\t\t<td class=\"title\">開戶省/市<\/td>\n\t\t<td>\n\t\t\t&nbsp;\n\t\t<\/td>\n\t<\/tr>\n\t<tr>\n\t\t<td class=\"title\">開戶支行<\/td>\n\t\t<td>'.$bank->bank_branch.'<\/td>\n\t<\/tr>\n\t<tr>\n\t\t<td class=\"title\">開戶姓名<\/td>\n\t\t<td>'.$bank->account_name.'<\/td>\n\t<\/tr>\n\t<tr>\n\t\t<td class=\"title\">銀行卡號<\/td>\n\t\t<td>'.$bank->bank_account.'<\/td>\n\t<\/tr>\n<\/table>\n"},{"spanid":"javascript","rtntext":"show_cus_bank_info_detail();"}]}}');
+		}
+	}
+	public function cus_withdraw($request, $response)
+    {
+		$banks = UserBank::where('user_id', $_SESSION['id'])->where('status', 100)->where('is_freeze',0)->get();
+		foreach($banks as $bank){
+			if(strlen($bank->bank_account) > 6)
+				$bank->bank_account = substr($bank->bank_account,0,2).'****'.substr($bank->bank_account,-4); 
+		}
+        return $this->view->render('cus_withdraw', [
+			"banks" => $banks
+		]);
+	}
+	public function cusWithdrawOp($request, $response, $args)
+    {
+		$get = $request->getQueryParams();
+		$post = $request->getParsedBody();
+		$pdisplay = $get['pdisplay'];
+		
+		if($pdisplay == 'save_withdraw'){
+			$info_id = $post['info_id'];
+			$apply_amount = $post['apply_amount'];
+
+			$id = $_SESSION['id'];
+			$user = User::find($id);
+			$bank = UserBank::where('id', $info_id)->where('user_id', $user->id)->first();
+
+			if (!$bank) {
+				return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'2\', {\"target\":\"kangCusWithdraw\"}));"}]}}';
+			}
+
+			if ($apply_amount <= 0) {
+				return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'1\', {\"target\":\"kangCusWithdraw\"}));"}]}}';
+			}
+
+			/*$grade = array();
+			$grade = CusGrade::find($user->cus_grade_id);
+			if($grade != null){
+				if ($apply_amount < $grade->grade_options_condition_min_withdraw_amount) {
+					return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'3\', {\"target\":\"kangCusWithdraw\"}));"}]}}';
+				}
+
+				if ($apply_amount > $grade->grade_options_condition_max_withdraw_amount) {
+					return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'4\', {\"target\":\"kangCusWithdraw\"}));"}]}}';
+				}
+			}*/
+
+			//總流水要求
+			/*$total_liushui = WithdrawAudit::where('user_id', $user->id)->whereIn('status', [0,1])->where('is_audit', 1)->sum('liushui');
+			//目前打碼量
+			$amount = $user->dama;
+			//還需打碼量
+			$need = ($total_liushui - $amount) < 0? 0 : $total_liushui - $amount;
+
+			if ($need > 0) {
+				return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'9\', {\"target\":\"kangCusWithdraw\"}));"}]}}';
+			}
+			*/
+			if ($apply_amount > $user->balance) {
+				return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'8\', {\"target\":\"kangCusWithdraw\"}));"}]}}';
+			}
+
+			$fee = 0;
+			$admin_fee = 0;
+			$actual_amount = $apply_amount - $fee - $admin_fee;
+			DB::beginTransaction();
+			try{
+				$user = User::lockForUpdate()->find($user->id);
+
+				$withdraw = new Withdraw();
+				$withdraw->trans_no =  'WD'.$user->id.date('YmdHis');
+				$withdraw->trans_type = 3;
+				$withdraw->user_id = $user->id;
+				$withdraw->bank_id = $bank->id;
+				$withdraw->name = $user->username;
+				$withdraw->amount = $apply_amount;
+				$withdraw->fee = $fee;
+				$withdraw->admin_fee = $admin_fee;
+				$withdraw->actual_amount = $actual_amount;
+				$withdraw->status =  -100;
+				$withdraw->apply_time =  date('Y-m-d H:i:s');
+				$withdraw->remark =  '';
+				$withdraw->save();
+					 
+				$log = new UserMoney();
+				$log->username = $user->username;
+				$log->assets = $user->balance;
+				$log->money = -$actual_amount;
+				$log->balance = $user->balance - $actual_amount;
+				$log->reason = '代理申请出款';
+				$log->order_id = 0;
+				$log->withdraw_id = $withdraw->id;
+				$log->operate_type = 2;
+				$log->trans_type = 3;
+				$log->operator = $user->username;
+				$log->created_at = date('Y-m-d H:i:s');
+				$log->updated_at = date('Y-m-d H:i:s');
+				$log->status = 1;
+				$log->save(); 
+				
+				$user->balance =  $user->balance - $actual_amount;
+				$user->save();
+
+				DB::commit();
+				return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'-1\', {\"target\":\"kangCusWithdraw\"}));"}]}}';
+				 
+			}catch(\Exception $ex){
+				DB::rollBack();
+				return '{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"save_withdraw_flag = 1;pop_msg(show_msg(\'10\', {\"target\":\"kangCusWithdraw\"}));"}]}}';	
+			}
+
+		}
+	}
+	public function self_quota_log_manager($request, $response)
     {
         return $this->view->render('self_quota_log_manager');
 	} 
+
+	public function cusBetReportManager($request, $response)
+	{
+		$get = $request->getQueryParams();
+		$sddate = isset($get['sddate']) ? $get['sddate'] : date('Y-m-d');
+		$eddate = isset($get['eddate']) ? $get['eddate'] : date('Y-m-d');
+		$sdtime = isset($get['sdtime']) ? $get['sdtime'] : date('00:00:00');
+		$edtime = isset($get['edtime']) ? $get['edtime'] : date('23:59:59');
+
+        return $this->view->render('cus_bet_report_manager',[
+			'sddate'=>$sddate,
+			'eddate'=>$eddate,
+			'sdtime'=>$sdtime,
+			'edtime'=>$edtime,
+			'search_customer_userid' => isset($get['search_customer_userid'])?$get['search_customer_userid']:''
+		]);
+	}
+
+	public function cusBetReportOp($request, $response)
+	{
+		$get = $request->getQueryParams();
+		$where = array();
+		 
+		$where[] = array('flag',1);
+		
+		$search_date_type = 'bet_time';
+		$dateTimeColumn = 'bet_time';
+		if(isset($get['search_date_type'])){
+			$search_date_type = $get['search_date_type'];
+			if($search_date_type == '1') 
+				$dateTimeColumn = 'bet_time';
+			elseif($search_date_type == '2') 
+				$dateTimeColumn = 'draw_time';
+			elseif($search_date_type == '3') 
+				$dateTimeColumn = 'bet_time';
+		}
+		if (isset($get['search_customer_userid']) && $get['search_customer_userid'] != '') {
+			$u = User::where('username', $get['search_customer_userid'])->where('role', 'customer')->first();
+			$where[] = array('user_id', $u['id']);
+		}
+		$sddate = isset($get['sddate']) ? $get['sddate'] : date('Y-m-d');
+		$eddate = isset($get['eddate']) ? $get['eddate'] : date('Y-m-d');
+		$sdtime = isset($get['sdtime']) ? $get['sdtime'] : date('00:00:00');
+		$edtime = isset($get['edtime']) ? $get['edtime'] : date('23:59:59');
+		$where[] = array($dateTimeColumn,'>=',$sddate.' ' .$sdtime);
+		$where[] = array($dateTimeColumn,'<=',$eddate.' ' .$edtime);
+// echo json_encode($where);
+// return;
+		$offset = 0;
+		if(isset($get['offset']))
+			$offset = intval($get['offset']);
+		
+		$limit = 10;
+		if(isset($get['limit']))
+			$limit = intval($get['limit']);
+		
+		$id = $_SESSION['id'];
+		$bets = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->with('game', 'user.upper')->where($where)->offset($offset)->take($limit)->orderBy('id', 'desc')->get();
+
+		$count = count($bets);
+		$min = collect($bets)->map(function ($bet) {
+			return $bet->user;
+		})->min('level');
+
+		foreach ($bets as $bet) {
+			if ($bet->user->level == $min) {
+				$bet->user->pid = 0;
+			}
+		}
+		
+		$summarys = Bet::whereHas('user',function($query) use ($id){
+			$query->where('parents','like','%/'.$id.'/%');
+		})->select(
+			DB::raw('sum(if(winlose=0, 1 , 0 )) loseCnt'),  
+			DB::raw('count(id) as Cnt'),
+			DB::raw('SUM(Amount) as totalAmount'),
+			DB::raw('SUM(valid_Amount) as totalValidAmount'),
+			DB::raw('SUM(winlose) as totalWinlose')
+		)->where($where)->first();
+
+		$page_summarys = new stdClass();
+		$page_summarys->Cnt = $bets->count();
+		$page_summarys->totalAmount = $bets->sum('amount');
+		$page_summarys->totalValidAmount = $bets->sum('valid_amount');
+		$page_summarys->totalWinlose = $bets->sum('winlose');
+		 
+		$result = $bets;
+		if($result == null)$result = [];
+		$draw = 1;
+		if(isset($get['draw']))
+			$draw = intval($get['draw']);
+		$result = Functions::listData($draw ,$count,$count,$result);
+		$result->page_summarys = $page_summarys;
+		return $response->withJson($result);
+	}
+
+	public function teamReportManager($request, $response)
+	{
+		$get = $request->getQueryParams();
+		$sddate = isset($get['sddate']) ? $get['sddate'] : date('Y-m-d');
+		$eddate = isset($get['eddate']) ? $get['eddate'] : date('Y-m-d');
+		$sdtime = isset($get['sdtime']) ? $get['sdtime'] : date('00:00:00');
+		$edtime = isset($get['edtime']) ? $get['edtime'] : date('23:59:59');
+
+        return $this->view->render('team_report_manager',[
+			'sddate'=>date("Y-m-d H:i:s", strtotime($sddate)),
+			'eddate'=>$eddate,
+			'sdtime'=>$sdtime,
+			'edtime'=>$edtime,
+			'search_customer_userid' => isset($get['search_customer_userid'])?$get['search_customer_userid']:''
+		]);
+	}
+
+	public function teamReportWaterOp($request, $response)
+	{
+		$get = $request->getQueryParams();
+		$offset = isset($get['offset']) ? intval($get['offset']) : 0;
+		$limit = isset($get['limit']) ? intval($get['limit']) : 10;
+
+		$where = array();
+		
+		if (isset($get['search'])) {
+			$where[] = array('username', 'like', '%' . $get['search'] . '%');
+		}
+
+		$id = $_SESSION['id'];
+		$where[] = array('parents','like','%/'.$id.'/%');
+
+		$users = User::where($where)->offset($offset)->take($limit)->get();
+		$min = collect($users)->min('level');
+
+		foreach ($users as $key => $user) {
+			if ($user->level == $min) {
+				$user->pid = 0;
+			}
+
+			$bets = Bet::where('user_id', $user->id)->get();
+
+			$summarys = new \stdClass;
+			$summarys->winLose = $bets->sum('amount');
+			$summarys->parentWater = 0;
+			$summarys->water = 0;
+
+			$user->summarys = $summarys;
+		}
+
+		$result = $users;
+		$count = $users->count();
+		if($result == null)$result = [];
+		$draw = 1;
+		if(isset($get['draw']))
+			$draw = intval($get['draw']);
+		$result = Functions::listData($draw ,$count,$count,$result);
+		// $result->page_summarys = $page_summarys;
+		return $response->withJson($result);
+	}
+
+	public function teamReportTakeOp($request, $response)
+	{
+		$get = $request->getQueryParams();
+		$offset = isset($get['offset']) ? intval($get['offset']) : 0;
+		$limit = isset($get['limit']) ? intval($get['limit']) : 10;
+
+		$where = array();
+		
+		if (isset($get['search'])) {
+			$where[] = array('username', 'like', '%' . $get['search'] . '%');
+		}
+		
+		$id = $_SESSION['id'];
+		$where[] = array('parents','like','%/'.$id.'/%');
+
+		$users = User::where($where)->offset($offset)->take($limit)->get();
+		$min = collect($users)->min('level');
+
+		foreach ($users as $key => $user) {
+			if ($user->level == $min) {
+				$user->pid = 0;
+			}
+
+			$bets = Bet::where('user_id', $user->id)->get();
+			
+			$summarys = new \stdClass;
+			$summarys->winLose = $bets->sum('amount');
+			$summarys->totalCost = 0;
+			$summarys->parentsWake = 0;
+			$summarys->parentsCost = 0;
+			$summarys->parentsSurplus = 0;
+			$summarys->wake = 0;
+			$summarys->cost = 0;
+			$summarys->surplus = 0;
+
+			$user->summarys = $summarys;
+		}
+
+		$result = $users;
+		$count = $users->count();
+		if($result == null)$result = [];
+		$draw = 1;
+		if(isset($get['draw']))
+			$draw = intval($get['draw']);
+		$result = Functions::listData($draw ,$count,$count,$result);
+		// $result->page_summarys = $page_summarys;
+		return $response->withJson($result);
+	}
 }

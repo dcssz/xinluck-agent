@@ -221,8 +221,8 @@ td
 					?> 
 					<tr>
 						<td><?=$bet->order_no?></td>
-						<td><?=$bet->game_username?></td>
-						<td><?=$bet->game_username?></td>
+						<td><?= $bet->user->upper ?$bet->user->upper->username.'('.$bet->user->upper->nickname.')': ''?></td>
+						<td><?=$bet->user->username?>(<?=$bet->user->nickname?>)</td>
 						<td><?=$bet->game->name?></td>
 						<td>未结算</td>
 						<td><?=$bet->game->name?></td>

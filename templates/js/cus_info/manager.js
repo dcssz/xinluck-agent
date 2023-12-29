@@ -83,11 +83,13 @@ var TableDatatablesAjax = function () {
 }();
 
 $(function(){
-    TableDatatablesAjax.init();
+    // TableDatatablesAjax.init();
 	$(".search-btn").click(function(){
+		
 		//grid.getDataTable().ajax.url("/op/cus_info_manager_op.php?pdisplay=display_manager_list&search_customer_userid=" + $("input[name=search_customer_userid]").val() + "&fuzzy_search=" + ($("input[name=fuzzy_search]").prop("checked") ? "1" : "0") + "&search_level=" + $("select[name=search_level]").val() + "&search_status=" + $("select[name=search_status]").val() + "&search_grade=" + $("select[name=search_grade]").val() + "&search_invite_code=" + $("input[name=search_invite_code]").val() + "&search_customer_name=" + $("input[name=search_customer_name]").val() + "&search_cell_phone=" + $("input[name=search_cell_phone]").val() + "&search_mark=" + $("select[name=search_mark]").val() + "&search_order_by=" + $("select[name=search_order_by]").val() + "&search_order_by_field=" + $("select[name=search_order_by_field]").val()).load();
-		var param = $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&edit_station_code=-1";
-		grid.getDataTable().ajax.url("/agent/list_cus_infos?pdisplay=display_manager_list&" + param).load();
+		var param = $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&edit_station_code=-1" + "&top_cus_id=" + $("#top-cus-id").val();
+		$table.bootstrapTable('refresh', {url: "/agent/list_cus_infos?pdisplay=display_manager_list&" + param});
+		// grid.getDataTable().ajax.url("/agent/list_cus_infos?pdisplay=display_manager_list&" + param).load();
 		
 		//param = param + "&edit_station_code=" + $(".station-btn.active").attr("station-code");
 		var _id = parent.window.currentFrame;

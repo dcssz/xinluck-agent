@@ -84,7 +84,7 @@ var TableDatatablesAjax = function () {
 }();
 
 $(function(){
-    TableDatatablesAjax.init();
+    // TableDatatablesAjax.init();
 	$(".search-btn").click(function(){
 		/*var param = "search_customer_userid=" + $("input[name=search_customer_userid]").val() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&fuzzy_search=" + ($("input[name=fuzzy_search]").prop("checked") ? "1" : "0") + "&search_level=" + $("select[name=search_level]").val() + "&search_status=" + $("select[name=search_status]").val() + "&search_invite_code=" + $("input[name=search_invite_code]").val() + "&search_commission_rule=" + $("select[name=search_commission_rule]").val() + "&search_retreat_rule=" + $("select[name=search_retreat_rule]").val() + "&search_occupy=" + $("input[name=search_occupy]").val() + "&search_extra_commission_rule=" + $("select[name=search_extra_commission_rule]").val() + "&edit_station_code=" + $("#edit-station-code").val();
 		grid.getDataTable().ajax.url("/op/agent_info_manager_op.php?pdisplay=display_manager_list&" + param).load();
@@ -94,7 +94,8 @@ $(function(){
 		parent.window.iframeHistory[_id].push(current_url + "?" + param);*/
 		
 		var param = $("#search-data-area [is-search-data=1]").serialize() + "&edit_cus_level=" + $("#edit-cus-level").val() + "&edit_station_code=-1";
-		grid.getDataTable().ajax.url("/agent/list_agent_infos?pdisplay=display_manager_list&" + param).load();
+		$table.bootstrapTable('refresh', {url: "/agent/list_agent_infos?pdisplay=display_manager_list&" + param});
+		// grid.getDataTable().ajax.url("/agent/list_agent_infos?pdisplay=display_manager_list&" + param).load();
 		
 		//param = param + "&edit_station_code=" + $("#edit-station-code").val();
 		var _id = parent.window.currentFrame;
@@ -118,4 +119,30 @@ function copy_link(e){
 	sel.addRange(TextRange);
     document.execCommand("copy");
 	pop_msg(change_lang_txt({"org_txt" : "複製成功"}) + "!");
+}
+
+function extendChild(id){
+	console.log(id);
+	var p = $('a[id="'+id+'"]');
+	var item = $('a[parents*="'+id+'"]');
+	console.log(item);
+	item.each(function(){
+		if($(this).attr('id') != id){
+			var row = $(this).parent().parent();
+			var selfShow = p.parent().parent();
+			if(p.html().indexOf('plus-icon') > -1)
+				row.show();
+			else
+				row.hide();
+		}
+		console.log(item);
+		console.log(row);
+	})
+	
+	console.log('当前符号：'+p.html());
+	if(p.html().indexOf('plus-icon') > -1) 
+		p.html('<img style="width:10px" src="/templates/images/sub-icon.png" />');
+	else 
+		p.html('<img style="width:10px" src="/templates/images/plus-icon.png" />');
+	
 }

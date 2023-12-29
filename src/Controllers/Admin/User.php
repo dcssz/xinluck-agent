@@ -14,6 +14,7 @@ use App\Models\CusGrade as CusGradeModel;
 use App\Models\CusMark as CusMarkModel;
 use App\Models\Game  ;
 use App\Models\GameUser as GameUserModel;
+use App\Models\GameStoreType as GameStoreTypeModel;
 use App\Models\Config;
 use App\Models\UserLog;
 use App\Models\Menu;
@@ -22,6 +23,9 @@ use App\Models\UserPermission;
 use App\Models\UserVerification; 
 use App\Models\SystemNotice; 
 use App\Models\WithdrawAudit;
+use App\Models\Withdraw;
+use App\Models\DepositOrder;
+use App\Models\Bet;
 
 class User extends AdminBase
 {
@@ -38,6 +42,7 @@ class User extends AdminBase
 		$where =array();
 		$where[] = array('livetime','>=', strtotime('-20 minute'));
 		$where[] = array('role','customer');
+		$where[] = array('parents', 'like','%/'.$_SESSION['id'].'/%');
 		if(isset($search_customer_userid)){
 			$where[] = array('username','like','%'.$search_customer_userid.'%');
 		}
@@ -72,12 +77,17 @@ class User extends AdminBase
 		$get = $request->getQueryParams();
 		$cusGrades = CusGradeModel::all();
 		$cusMarks = CusMarkModel::all();
+		$top_cus_id = isset($get["top_cus_id"]) ? $get["top_cus_id"] : $_SESSION['id'];
+		$user = UserModel::find($top_cus_id);
+		$agent = UserModel::find($_SESSION['id']);
 
         return $this->view->render('cus_info_manager', [
 			"cusGrades" => $cusGrades,
 			"cusMarks" => $cusMarks,
 			"search_identity_status" => isset($get['search_identity_status']) ? $get['search_identity_status'] : -1,
-			"top_cus_id" => isset($get["top_cus_id"]) ? $get["top_cus_id"] : ''
+			"top_cus_id" => $top_cus_id,
+			"user" => $user,
+			"agent" => $agent,
 		]);
 	}
  
@@ -123,15 +133,15 @@ class User extends AdminBase
 
 		$where = array();
 		//$where[] = array('status',1);
-		$start = 0;
-		if(isset($get['start']))
-			$start = intval($get['start']);
+		$offset = 0;
+		if(isset($get['offset']))
+			$offset = intval($get['offset']);
 		
-		$length = 10;
-		if(isset($get['length']))
-			$length = intval($get['length']);
+		$limit = 10;
+		if(isset($get['limit']))
+			$limit = intval($get['limit']);
 		
-		$where[] = array('role', 'customer');
+		// $where[] = array('role', 'customer');
 
 		if ($get['search_customer_userid'] != '') {
 			if (isset($get['fuzzy_search']) && $get['fuzzy_search'] == 1) {
@@ -172,109 +182,39 @@ class User extends AdminBase
 		if ($get['search_order_by_field'] == 'create_datetime') {
 			$field = 'created_at';
 		}
-		
-		$where[] = array('parents', 'like','%/'.$_SESSION['id'].'/%');
+
+		$where[] = array('parents', 'like','%/'.$get['top_cus_id'].'/%');
 		 
-		
-		 
-		
 		$order = $get['search_order_by'];
-		
-		$datas = UserModel::with('cusGrade', 'cusMark')->where($where)->skip($start)->take($length)->orderBy($field, $order)->get();
-		
-		$frontUrl = Config::where('name','frontUrl')->pluck('value')->first();
 		 
+		$datas = UserModel::with('cusGrade', 'cusMark')->where($where)->whereIn('role', ['customer', 'agent'])->offset($offset)->take($limit)->orderBy('id', $order)->get();
+		$count = UserModel::where($where)->whereIn('role', ['customer', 'agent'])->count();
+		$frontUrl = Config::where('name','frontUrl')->pluck('value')->first();
+		$min = collect($datas)->min('level');
 		$result = array();
 		foreach($datas as $data){
-			if ($data->cusMark) {
-				$name = "<span class=\"pd-5\" style=\"background-color: {$data->cusMark->color}\">{$data->username}</span><div class=\"mt-5\">({$data->nickname})</div>";
-			} else {
-				$name = "<span class=\"pd-5\" style=\"background-color: \">{$data->username}</span><div class=\"mt-5\">({$data->nickname})</div>";
+			if ($data->level == $min) {
+				$data->pid = 0;
 			}
-			$parent = UserModel::whereIn('role', ['agent', 'topagent'])->where('id', $data->pid)->first();
-			if ($parent) {
-				if ($parent->role == 'topagent') {
-					$parent1_name = "{$parent->username}<br />({$parent->nickname})";
-					$parent2_name = '';
-				} else {
-					$p_parent = UserModel::where('role', 'topagent')->where('id', $parent->pid)->first();
-					$parent1_name = "{$p_parent->username}<br />({$p_parent->nickname})";
-					$parent2_name = "{$parent->username}<br />({$parent->nickname})";
-				}
-			} else {
-				$parent1_name = '';
-				$parent2_name = '';
-			}
-			
-
-			if ($data->valid == 1) {
-				$status = "<a class=\"status-btn status-open\" href=\"javascript:void(0);\">啟用</a>";
-			} elseif ($data->valid == 2) {
-				$status = "<a class=\"status-btn status-close\" href=\"javascript:void(0);\">停押</a>";
-			} elseif ($data->valid == 3) {
-				$status = "<a class=\"status-btn status-close\" href=\"javascript:void(0);\">鎖定</a>";
-			} elseif ($data->valid == 4) {
-				$status = "<a class=\"status-btn status-close\" href=\"javascript:void(0);\">停用</a>";
-			}
-
-			$identity_status = '-';
-			if ($data->identity_status == 1) {
-				$identity_status = "<div class=\"identity-status-btn s1\">未驗證</div>";
-			} elseif ($data->identity_status == 2) {
-				$identity_status = "<div class=\"identity-status-btn s2\">待審核</div>";
-			} elseif ($data->identity_status == 3) {
-				$identity_status = "<div class=\"identity-status-btn s3\">驗證失敗</div>";
-			} elseif ($data->identity_status == 100) {
-				$identity_status = "<div class=\"identity-status-btn s100\">已驗證</div>";
-			}
-			$amout_in_total = 0;
-			$amout_out_total = 0;
-			$balance = $data->balance;
-			$bet_total = 0;
-			$cus_grade = "";
-			if ($data->cusGrade) {
-				$cus_grade = $data->cusGrade->name;
-			}
-			$invite_count = 0;
-
-			$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
-
-			$created_at = "<div align= center>".$data->created_at."</div>";
-			$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"/admin/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=14\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
-			//$action .= "<a href=\"cus_info_log_list.php?customer_id={$data->id}&is_back=1\" target=\"_blank\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>";
-			
+			$data->amout_in_total = DepositOrder::where('user_id', $data->id)->where('status', 100)->sum('apply_amount');
+			$data->amout_out_total = Withdraw::where('user_id', $data->id)->where('status', 100)->sum('amount');
+			$data->bet_total = Bet::where('user_id', $data->id)->sum('valid_amount');
+			$data->invite_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
+			$data->invite_code_url = "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
 
 			$action = "<div class=\"paction-btn-div\">\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"javascript:void(0);\" onclick=\"request_identity_ver_div('{$data->id}');\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 身分驗證 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_info_editor?etype=edit&edit_cus_id={$data->id}\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"adjust_quota?search_customer_userid={$data->username}&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 調額 </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"cus_withdraw_audit_manager?search_customer_userid={$data->username}&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 流水 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_instant_bet_info_manager?search_customer_userid={$data->username}&search_level=16&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 投注 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_report_manager?search_customer_userid={$data->username}&search_level=16&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 報表 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_quota_log_manager?search_customer_userid={$data->username}&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 日誌 </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"cus_info_log_list?user_id={$data->id}&is_back=1\"  class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "</div>"; 
-			$formatItem = array();
-			$formatItem[] = $name;
-			$formatItem[] = $parent1_name;
-			$formatItem[] = $parent2_name;
-			$formatItem[] = $status;
-			$formatItem[] = $identity_status;
-			$formatItem[] = $amout_in_total;
-			$formatItem[] = $amout_out_total;
-			$formatItem[] = $balance;
-			$formatItem[] = $bet_total;
-			$formatItem[] = $cus_grade;
-			$formatItem[] = $invite_count;
-			$formatItem[] = $created_at;
-			$formatItem[] = $invite_code;
-			$formatItem[] = $action;
-			$result[] = $formatItem;
+			$action .= "</div>";
+
+			$data->action = $action;
 		}
-		
-		$count = UserModel::where($where)->count();
+
+		$result = $datas;
+
 		if($result == null)$result = [];
 		$draw = 1;
 		if(isset($get['draw']))
@@ -282,7 +222,6 @@ class User extends AdminBase
 		$result = Functions::listData($draw ,$count,$count,$result);
 		return $response->withJson($result);
 	}
-	
 	
 	public function cusInfoManagerOp($request, $response)
     {
@@ -349,7 +288,7 @@ class User extends AdminBase
 		$get = $request->getQueryParams();
 		$etype = isset($get['etype']) ? $get['etype'] : $post['etype'];
 		$pdisplay =  isset($get['pdisplay']) ? $get['pdisplay']:'';
-		$edit_cus_id = isset($get['edit_cus_id']) ? $get['edit_cus_id'] : $post['edit_cus_id'];
+		$edit_cus_id = isset($get['edit_cus_id']) ? $get['edit_cus_id'] : 0;
 		$btn_type = isset($get['btn_type']) ? $get['btn_type']:'basic-info-area';
 		$balanceHtml = array();
 		if($pdisplay =='get_data_content'){
@@ -359,6 +298,8 @@ class User extends AdminBase
 		 
 		}
 		//详细资料------------------------------------------
+		$GameStoreTypes = array();
+		$user_open_game_ids = array();
 		if ($etype  == 'edit') {
 			//编辑
 			$user = UserModel::find($edit_cus_id);
@@ -368,7 +309,9 @@ class User extends AdminBase
 			$games->load(["gameUser" => function ($query) use ($edit_cus_id) {
 				$query->where('user_id', $edit_cus_id);
 			}]);
-
+			//开放游戏设定--------------------------------------
+			$GameStoreTypes = GameStoreTypeModel::with('games')->get();
+			$user_open_game_ids = $user->games()->pluck('game_id')->toArray();
 			 
 		
 		} else  {
@@ -393,6 +336,8 @@ class User extends AdminBase
 			"top_cus_id" => $top_cus_id,
 			"balanceHtml" => $balanceHtml,
 			'games'=>$games,
+			"GameStoreTypes" => $GameStoreTypes,
+			"user_open_game_ids" => $user_open_game_ids,
 		]);
 	}
 	
@@ -503,12 +448,40 @@ class User extends AdminBase
 		$post = $request->getParsedBody();
 		$id = $post['edit_cus_id'];
 		$etype = $post['etype'];
+		$save_type = $post['save_type'];
 		
-		
-		
-		if($etype == 'edit'){
-			$user = UserModel::find($id);
-			if ($post['customer_pass1'] != '') {
+		if ($save_type == 'basic-info') {
+			
+			
+			if($etype == 'edit'){
+				$user = UserModel::find($id);
+				if ($post['customer_pass1'] != '') {
+					if (strlen($post['customer_pass1']) < 3) {
+						$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'6\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+						return $response->withJson($msg);
+					}
+					if ($post['customer_pass1'] != $post['customer_pass2']) {
+						$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'5\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+						return $response->withJson($msg);
+					}
+					$user->password = crypt($post['customer_pass1'], '$1$' . substr(md5($user->username), 5, 8));
+				}
+				$user->role = $post['role'];
+				
+			} else {
+				$user = new UserModel;
+				if ($post['customer_userid'] == '') {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'2\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				if (strlen($post['customer_userid']) < 2 || strlen($post['customer_userid']) > 10) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'13\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				if ($post['customer_pass1'] == '') {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'3\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
 				if (strlen($post['customer_pass1']) < 3) {
 					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'6\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
 					return $response->withJson($msg);
@@ -517,88 +490,79 @@ class User extends AdminBase
 					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'5\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
 					return $response->withJson($msg);
 				}
-				$user->password = crypt($post['customer_pass1'], '$1$' . substr(md5($user->username), 5, 8));
-			}
-			
-			
-		} else {
-			$user = new UserModel;
-			if ($post['customer_userid'] == '') {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'2\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if (strlen($post['customer_userid']) < 2 || strlen($post['customer_userid']) > 10) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'13\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if ($post['customer_pass1'] == '') {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'3\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if (strlen($post['customer_pass1']) < 3) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'6\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if ($post['customer_pass1'] != $post['customer_pass2']) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'5\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			$exist = UserModel::where('username', $post['customer_userid'])->first();
-			if ($exist) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'11\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if ($post['cell_phone'] == '') {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\"请输入手机号码\");page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			$exist = UserModel::where('mobile', $post['cell_phone'])->first();
-			if ($exist) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'21\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			$user->username = $post['customer_userid'];
-			$user->password = crypt($post['customer_pass1'], '$1$' . substr(md5($post['customer_userid']), 5, 8));
-			$user->level = 0;
-			$loginId = $_SESSION['id'];
-			$user->pid = $loginId; //$post['top_cus_id'];
-			$top_parent = UserModel::find($loginId);
-			$user->parents = $top_parent->parents . $loginId ."/";
-			
-			$user->role = "customer";
-		}
+				$exist = UserModel::where('username', $post['customer_userid'])->first();
+				if ($exist) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'11\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				if ($post['cell_phone'] == '') {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\"请输入手机号码\");page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				$exist = UserModel::where('mobile', $post['cell_phone'])->first();
+				if ($exist) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'21\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				$user->username = $post['customer_userid'];
+				$user->password = crypt($post['customer_pass1'], '$1$' . substr(md5($post['customer_userid']), 5, 8));
 
-		
-		$user->nickname = $post['customer_name'];
-		$user->valid = $post['customer_status'];
-		$user->cus_mark_id = $post['mark_id'];;
-		$user->birthday = $post['birthday'];
-		$user->mobile = $post['cell_phone'];
-		$user->email = $post['email'];
-		$user->line_id = $post['line'];
-		$user->telegram = $post['telegram'];
-		$user->instagram = $post['instagram'];
-		$user->qq = $post['qq'];
-		$user->wechat = $post['wechat'];
-		$user->note = $post['notes'];
-		
-		$user->save();
-		
-		
-		if ($etype == 'add') {
-			$user->invite_code = 'tjs' . ($user->id + 99);
+				if (isset($post['top_cus_id'])) {
+					$loginId = $post['top_cus_id'];
+				} else {
+					$loginId = $_SESSION['id'];
+				}
+
+				$user->pid = $loginId; //$post['top_cus_id'];
+				$top_parent = UserModel::find($loginId);
+				$user->parents = $top_parent->parents . $loginId ."/";
+				$user->level = $top_parent->level + 1;
+				
+				$user->role = "customer";
+			}
+
+			
+			$user->nickname = $post['customer_name'];
+			$user->valid = $post['customer_status'];
+			$user->cus_mark_id = $post['mark_id'];;
+			$user->birthday = $post['birthday'];
+			$user->mobile = $post['cell_phone'];
+			$user->email = $post['email'];
+			$user->line_id = $post['line'];
+			$user->telegram = $post['telegram'];
+			$user->instagram = $post['instagram'];
+			$user->qq = $post['qq'];
+			$user->wechat = $post['wechat'];
+			$user->note = $post['notes'];
+			
 			$user->save();
+			
+			
+			if ($etype == 'add') {
+				$user->invite_code = 'tjs' . ($user->id + 99);
+				$user->save();
 
-			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
-		} else {
-			
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+			} else {
+				
 			 
-			$userLog = new UserLog;
-			$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],'修改資料');
-			
-			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+				$userLog = new UserLog;
+				$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],'修改資料');
+				
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+			}
+			return $response->withJson($msg);
+		} elseif ($save_type == 'open-game-info') {
+			//开放游戏设定
+			$edit_cus_level = $post['edit_cus_level'];
+			$game_status_arr = $post['game_status_arr'];
+			$user = UserModel::find($id);
+			$user->games()->sync($game_status_arr);
+
+
+			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+			return $response->withJson($msg);
 		}
-		return $response->withJson($msg);
 	}
 
 	//资金调度

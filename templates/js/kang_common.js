@@ -721,6 +721,35 @@ function show_msg(msg_code, args){
 				msg = change_lang_txt({"org_txt" : "操作失敗"}) + "!";
 			}
 			break;
+		case "kangCusWithdraw":
+			if(msg_code == -1){
+				msg = change_lang_txt({"org_txt" : "申請成功"}) + "!";
+			}else if(msg_code == 1){
+				msg = change_lang_txt({"org_txt" : "請輸入大於0的整數金額"}) + "!";
+			}else if(msg_code == 2){
+				msg = change_lang_txt({"org_txt" : "銀行卡錯誤"}) + "!";
+			}else if(msg_code == 3){
+				msg = change_lang_txt({"org_txt" : "取款金額低於最低取款"}) + "!";
+			}else if(msg_code == 4){
+				msg = change_lang_txt({"org_txt" : "取款金額高於最高取款"}) + "!";
+			}else if(msg_code == 5){
+				msg = change_lang_txt({"org_txt" : "當前尚有未處理完成的取款申請單, 無法重複申請"}) + "!";
+			}else if(msg_code == 6){
+				msg = change_lang_txt({"org_txt" : "今日已達取款次數上限"}) + "!";
+			}else if(msg_code == 7){
+				msg = change_lang_txt({"org_txt" : "實際取款金額需大於0"}) + "!";
+			}else if(msg_code == 8){
+				msg = change_lang_txt({"org_txt" : "主帳戶額度不足"}) + "!";
+			}else if(msg_code == 9){
+				msg = change_lang_txt({"org_txt" : "尚未完成打碼量"}) + "!";
+			}else if(msg_code == 10){
+				msg = change_lang_txt({"org_txt" : "無法取款"}) + "! " + change_lang_txt({"org_txt" : "請聯繫客服"}) + "!";
+			}else if(msg_code == 11){
+				msg = change_lang_txt({"org_txt" : "請先至個人資料驗證身分"}) + "!<br/><a class=\"turn-page-btn\" onclick=\"parent.location.href='personal_info';\">" + change_lang_txt({"org_txt" : "點我跳轉"}) + "</a>";
+			}else if(msg_code == 12){
+				msg = change_lang_txt({"org_txt" : "請先至少綁定一張已驗證的銀行卡"}) + "!<br/><a class=\"turn-page-btn\" onclick=\"parent.location.href='cus_bank_info';\">" + change_lang_txt({"org_txt" : "點我跳轉"}) + "</a>";
+			}
+			break;
 		case "kangMarquee":
 			if(msg_code == -1 || msg_code == -2){
 				msg = change_lang_txt({"org_txt" : "儲存成功"}) + "!";
@@ -996,6 +1025,48 @@ function show_msg(msg_code, args){
 				msg = change_lang_txt({"org_txt" : "儲存成功"}) + "!";
 			}else if(msg_code == 1){
 				msg = change_lang_txt({"org_txt" : "操作失敗"}) + "!";
+			}
+			break;
+		case "kangSubCustomer":
+			if(msg_code == -1){
+				msg = change_lang_txt({"org_txt" : "更新成功"}) + "!";
+			}else if(msg_code == -2){
+				msg = change_lang_txt({"org_txt" : "刪除成功"}) + "!";
+			}else if(msg_code == -3){
+				msg = change_lang_txt({"org_txt" : "新增成功"}) + "!";
+			}else if(msg_code == 1){
+				msg = change_lang_txt({"org_txt" : "更新失敗"}) + "!";
+			}else if(msg_code == 2){
+				msg = change_lang_txt({"org_txt" : "密碼長度需至少三位"}) + "!";
+			}else if(msg_code == 3){
+				msg = change_lang_txt({"org_txt" : "刪除失敗"}) + "!";
+			}else if(msg_code == 4){
+				msg = change_lang_txt({"org_txt" : "密碼只能英文數字組合"}) + "!";
+			}else if(msg_code == 5){
+				msg = change_lang_txt({"org_txt" : "至少選擇一個權限"}) + "!";
+			}else if(msg_code == 6){
+				msg = change_lang_txt({"org_txt" : "帳號只能英文數字組合"}) + "!";
+			}else if(msg_code == 7){
+				msg = change_lang_txt({"org_txt" : "帳號須至少填入三位"}) + "!";
+			}else if(msg_code == 8){
+				msg = change_lang_txt({"org_txt" : "名稱不能為空"}) + "!";
+			}else if(msg_code == 9){
+				msg = change_lang_txt({"org_txt" : "該帳號已被用過"}) + "!";
+			}
+			break;
+		case "kangPersonalInfo":
+			if(msg_code == -1){
+				msg = change_lang_txt({"org_txt" : "密碼修改成功"}) + "!";
+			}else if(msg_code == 1){
+				msg = change_lang_txt({"org_txt" : "請輸入密碼"}) + "!";
+			}else if(msg_code == 2){
+				msg = change_lang_txt({"org_txt" : "密碼只能英文數字組合"}) + "!";
+			}else if(msg_code == 3){
+				msg = change_lang_txt({"org_txt" : "新密碼與確認密碼不一致"}) + "!";
+			}else if(msg_code == 4){
+				msg = change_lang_txt({"org_txt" : "密碼長度需至少三位"}) + "!";
+			}else if(msg_code == 5){
+				msg = change_lang_txt({"org_txt" : "舊密碼不符合"}) + "!";
 			}
 			break;
 		default:

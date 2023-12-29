@@ -11,8 +11,8 @@ Class GameStoreType extends Model
     protected $table = 'game_store_types';
     //protected $hidden = ['deleted_at'];
 
-    public function gameStores()
+    public function games()
     {
-        return $this->hasMany('App\Models\GameStore');
+        return $this->hasMany('App\Models\Game');
     }
 }

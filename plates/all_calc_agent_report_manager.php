@@ -151,12 +151,28 @@ td
 						</button>
 					</span>
 				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-start-time" name="sdtime" value="<?=$sdtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
+						</button>
+					</span>
+				</div>
 				<div class="sign">~</div>
 				<div class="input-group input-small date date-picker eddate" data-date="<?=$eddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
 					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=$eddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
+						</button>
+					</span>
+				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-end-time" name="edtime" value="<?=$edtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
 						</button>
 					</span>
 				</div>
@@ -254,8 +270,8 @@ td
 			 <td class=""><?=$allTotal->Cnt?></td>
 			 <td class=""><?=$allTotal->totalAmount?></td>
 			 <td class=""><?=$allTotal->totalValidAmount?></td>
-			 <td class="">0</td>
-			 <td class="">0</td>
+			 <td class=""><?=$allTotal->money_in?></td>
+			 <td class=""><?=$allTotal->money_out?></td>
 			 <td class="">0</td>
 			 <td class=" total-merchant-fee hidden">0</td>
 			 <td class=" total-merchant-fee hidden">0</td>
@@ -263,8 +279,8 @@ td
 			 <td class="green-txt">0</td>
 			 <td class=" total-discount hidden">0</td>
 			 <td class="green-txt total-discount hidden">0</td>
-			 <td class="">0</td>
-			 <td class="">0</td>
+			 <td class=""><?=$allTotal->retreat?></td>
+			 <td class=""><?=$allTotal->retreat?></td>
 			 <td class="">0</td>
 			 <td class=" cus-lev15-retreat hidden">0</td>
 			 <td class=" cus-lev15-retreat hidden">0</td>
@@ -277,20 +293,26 @@ td
 			 <td class="">0</td>
 			 <td class=" cus-lev14-commission hidden">0</td>
 			 <td class=" cus-lev14-commission hidden">0</td>
-			 <td class="">0</td>
-			 <td class="green-txt"><?=$allTotal->totalWinlose?></td>
+			 <td class=""><?=$allTotal->totalGameGive?></td>
+			 <td class="green-txt"><?=$allTotal->total?></td>
 			</tr>
 			<?php
-				foreach($summarys as $bet){
+				foreach($users as $user){
 			?> 
 			<tr>
-			 <td>總代理</td>
-			 <td class="text-left"><a href="all_calc_agent_report_manager?report_lev=2&sddate=<?=$sddate?>&eddate<?=$eddate?>&up_cus_id=128&up_cus_userid=<?=$bet->user->username?>&up_customer_level=14&is_back=1&asearch_date_type=1&astation_code_all=all"><?=$bet->user->username?>&nbsp;(<?=App\Models\User::getRoleName($bet->user->role)?>)</a><a></a></td>
-			 <td class=""><?=$bet->Cnt?></td>
-			 <td class=""><?=$bet->totalAmount?></td>
-			 <td class=""><?=$bet->totalValidAmount?></td>
-			 <td class="">0</td>
-			 <td class="">0</td>
+			 <td><?=App\Models\User::getRoleName($user->role)?></td>
+			 <td class="text-left">
+				<?php if ($user->role == 'customer') { ?>
+					<?=$user->username?>&nbsp;(<?=$user->nickname?>)
+				<?php } else { ?>
+					<a href="all_calc_agent_report_manager?report_lev=2&pid=<?=$user->id?>&sddate=<?=$sddate?>&eddate=<?=$eddate?>&asearch_date_type=1&astation_code_all=all"><?=$user->username?>&nbsp;(<?=$user->nickname?>)</a>
+				<?php } ?>
+			</td>
+			 <td class=""><?=$user->Cnt?></td>
+			 <td class=""><?=$user->totalAmount?></td>
+			 <td class=""><?=$user->totalValidAmount?></td>
+			 <td class=""><?=$user->money_in?></td>
+			 <td class=""><?=$user->money_out?></td>
 			 <td class="">0</td>
 			 <td class="total-merchant-fee hidden">0</td>
 			 <td class="total-merchant-fee hidden">0</td>
@@ -298,22 +320,22 @@ td
 			 <td class="">0</td>
 			 <td class="total-discount hidden">0</td>
 			 <td class="total-discount hidden">0</td>
-			 <td class="">0</td>
-			 <td class="">0</td>
+			 <td class=""><?=$user->retreat?></td>
+			 <td class=""><?=$user->retreat?></td>
 			 <td class="">0</td>
 			 <td class="cus-lev15-retreat hidden">0</td>
 			 <td class="cus-lev15-retreat hidden">0</td>
 			 <td class="">0</td>
 			 <td class="cus-lev14-retreat hidden">0</td>
 			 <td class="cus-lev14-retreat hidden">0</td>
-			 <td class=""><?=$bet->totalWinlose?></td>
+			 <td class=""><?=$user->totalWinlose?></td>
 			 <td class="">0</td>
 			 <td class="">0</td>
 			 <td class="">0</td>
 			 <td class="cus-lev14-commission hidden">0</td>
 			 <td class="cus-lev14-commission hidden">0</td>
-			 <td class="">0</td>
-			 <td class=""><?=$bet->totalWinlose?></td>
+			 <td class=""><?=$user->totalGameGive?></td>
+			 <td class=""><?=$user->total?></td>
 			</tr>
 			<?php
 				}

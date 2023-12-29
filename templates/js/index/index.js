@@ -41,7 +41,7 @@ function now_time_run(){
 	count_index_time += 1;
 	if(count_index_time >= 10){
 		count_index_time = 0;
-		requestJSON("index_op.php", "pdisplay=update_info", "" , "");
+		//requestJSON("index_op.php", "pdisplay=update_info", "" , "");
 	}
 	
 	count_sound_time += 1;	//計算幾秒後要出音效
@@ -202,3 +202,4 @@ function play_sound(id){
 		count_sound_time = 0;
 	}
 }
+

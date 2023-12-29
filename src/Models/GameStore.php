@@ -11,8 +11,13 @@ Class GameStore extends Model
     protected $table = 'game_stores';
     //protected $hidden = ['deleted_at'];
 
-    public function games()
+    public function game()
     {
-        return $this->hasMany('App\Models\Game');
+        return $this->belongsTo('App\Models\Game');
+    }
+
+    public function gameMark()
+    {
+        return $this->belongsTo('App\Models\GameMark');
     }
 }

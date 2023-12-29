@@ -262,15 +262,15 @@ label{
     	<div class="type-btn-div">
         	<span class="hidden">總代理&nbsp;帳號:&nbsp;&nbsp;&nbsp;</span>
             <button class="type-btn1 active" type="button" onClick="show_data_content(this, 'basic-info-area');">詳細資料</button>
-            <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?>" type="button" onclick="show_data_content(this, 'bank-info-area');">銀行信息</button>
+            <!--button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?>" type="button" onclick="show_data_content(this, 'bank-info-area');">銀行信息</button-->
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?>" type="button" onClick="show_data_content(this, 'open-game-info-area');">開放遊戲設定</button>
-            <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onClick="show_data_content(this, 'opt-occupy-info-area');">佔成設定</button>
+            <!--button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onClick="show_data_content(this, 'opt-occupy-info-area');">佔成設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onClick="show_data_content(this, 'retreat-occupy-info-area');">佔水設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group1-area');">體育設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group2-area');">彩票設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group3-area');">真人設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group4-area');">電子設定</button>
-            <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group6-area');">電競設定</button>
+            <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group6-area');">電競設定</button-->
         </div>
     </div>                  
 </div>
@@ -430,7 +430,45 @@ label{
     <div class="no-data"></div>
 </div>
 <div id="open-game-info-area" class="data-content hidden">
-    <div id="no-data"></div>
+    <!--slot=3-->
+    <div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('open-game-info')">儲存開放遊戲設定</button></div>
+    <form>
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                <!--slot=8-->
+                <!-- for occupy&game_status -->
+                <div class="portlet-title has_set_tool" style="background-color: rgba(241, 211, 15, 0.3); cursor: pointer;">
+                    <div class="caption" style="padding: 14px;">
+                        <i class="fa fa-cogs font-green-sharp"></i> <span class="caption-subject font-green-sharp bold uppercase" style="font-size: 16px;">開放遊戲&nbsp;<font class="txt-color1"></font></span>
+                    </div>
+                    <div class="tool"><a class="collapse" id="sport-title-expand"></a></div>
+                </div>
+                <div class="tabbable-line mt-20" style="">
+                    <div class="tab-content">
+                        <table id="game-status-table">
+                            <tbody>
+                              <?php foreach ($GameStoreTypes as $type) {?>
+                                <tr>
+                                <td><?= $type->name ?></td>
+                                <td>
+                                    <input type="checkbox" class="status-ckbox-all" spot="<?= $type->id ?>" />
+                                    全部
+                                    <?php foreach ($type->games as $game) {?>
+                                      <input type="checkbox" class="status-ckbox" name="game_status_arr[]" value="<?= $game->id ?>" spot="<?= $type->id ?>" <?= in_array($game->id, $user_open_game_ids) ? 'checked=""' : '' ?> />
+                                      <?= $game->name ?>
+                                    <?php } ?>
+                                </td>
+                                </tr>
+                              <?php } ?>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <br />
+            </div>
+        </div>
+    </form>
 </div>
 <div id="opt-occupy-info-area" class="data-content hidden">
     <div id="no-data"></div>

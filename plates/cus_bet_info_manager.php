@@ -94,12 +94,28 @@ td
 						</button>
 					</span>
 				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-start-time" name="sdtime" value="<?=$sdtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
+						</button>
+					</span>
+				</div>
 				<div class="sign">~</div>
 				<div class="input-group input-small date date-picker eddate" data-date="<?=$eddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
 					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=$eddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
+						</button>
+					</span>
+				</div>
+				<div class="input-group input-small search-time">
+					<input type="text" id="search-end-time" name="edtime" value="<?=$edtime?>" class="form-control timepicker timepicker-24" readonly>
+					<span class="input-group-btn">
+						<button class="btn blue" type="button">
+							<i class="fa fa-clock-o"></i>
 						</button>
 					</span>
 				</div>
@@ -260,8 +276,8 @@ td
 					?> 
 					<tr>
 						<td><?=$bet->order_no?></td>
-						<td><?=$bet->game_username?></td>
-						<td><?=$bet->game_username?></td>
+						<td><?= $bet->user->upper ?$bet->user->upper->username.'('.$bet->user->upper->nickname.')': ''?></td>
+						<td><?=$bet->user->username?>(<?=$bet->user->nickname?>)</td>
 						<td><?=$bet->game->name?></td>
 						<td>已结算</td>
 						<td><?=$bet->game->name?></td>

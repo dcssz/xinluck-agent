@@ -508,40 +508,42 @@ function initial_game_status_set(){
 //=== 開放遊戲設定 end ===/
 
 function show_data_content(el_this, area_id){
-	var el_area = $('#' + area_id);
-	//按鈕選中
-	$('.type-btn1').removeClass('active');
-	$(el_this).addClass('active');
-	
-	//只顯示選中區塊
-	$('.data-content').addClass('hidden');
-	/*if($('#' + area_id + " #no-data").length > 0){//沒內容的話 跟伺服器要資料
-		page_content_mask_show();
-		var etype = $('#etype').val();
-		var edit_cus_id = $('#edit-cus-id').val();
-		var edit_cus_level = $('#edit-cus-level').val();
-		var top_cus_id = $('#top-cus-id').val();
-		requestJSON("cus_info_editor_op.php", "pdisplay=get_data_content", "area_id=" + area_id + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&top_cus_id=" + top_cus_id);
-		el_area.removeClass('hidden');
-	}else{
-		el_area.removeClass('hidden');
-		change_save_btn_area(area_id);
-	}*/
-	if(area_id != 'basic-info-area'){//改都跟伺服器要資料(但基本資料沒有單獨要資料)
-		// $("#" + area_id).html("");
-		// page_content_mask_show();
-		var etype = $('#etype').val();
-		var edit_cus_id = $('#edit-cus-id').val();
-		var edit_cus_level = $('#edit-cus-level').val();
-		var top_cus_id = $('#top-cus-id').val();
-		requestJSON("/agent/cus_info_editor", "pdisplay=get_data_content", "area_id=" + area_id + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&top_cus_id=" + top_cus_id);
-		el_area.removeClass('hidden');
-	}else{
-		el_area.removeClass('hidden');
-		change_save_btn_area(area_id);
-	}
-	
-	//el_area.removeClass('hidden');
+    var el_area = $('#' + area_id);
+    //按鈕選中
+    $('.type-btn1').removeClass('active');
+    $(el_this).addClass('active');
+    
+    //只顯示選中區塊
+    $('.data-content').addClass('hidden');
+    /*if($('#' + area_id + " #no-data").length > 0){//沒內容的話 跟伺服器要資料
+        page_content_mask_show();
+        var etype = $('#etype').val();
+        var edit_cus_id = $('#edit-cus-id').val();
+        var edit_cus_level = $('#edit-cus-level').val();
+        var top_cus_id = $('#top-cus-id').val();
+        requestJSON("cus_info_editor_op.php", "pdisplay=get_data_content", "area_id=" + area_id + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&top_cus_id=" + top_cus_id);
+        el_area.removeClass('hidden');
+    }else{
+        el_area.removeClass('hidden');
+        change_save_btn_area(area_id);
+    }*/
+    if(area_id != 'basic-info-area'){//改都跟伺服器要資料(但基本資料沒有單獨要資料)
+        //$("#" + area_id).html("");
+        //page_content_mask_show();
+        var etype = $('#etype').val();
+        var edit_cus_id = $('#edit-cus-id').val();
+        var edit_cus_level = $('#edit-cus-level').val();
+        var top_cus_id = $('#top-cus-id').val();
+       //requestJSON("/agent/cus_info_editor", "pdisplay=get_data_content", "area_id=" + area_id + "&etype=" + etype + "&edit_cus_id=" + edit_cus_id + "&edit_cus_level=" + edit_cus_level + "&top_cus_id=" + top_cus_id);
+        el_area.removeClass('hidden');
+        change_save_btn_area(area_id);
+
+    }else{
+        el_area.removeClass('hidden');
+        change_save_btn_area(area_id);
+    }
+    initial_game_status_set();
+    //el_area.removeClass('hidden');
 }
 
 function change_save_btn_area(area_id){

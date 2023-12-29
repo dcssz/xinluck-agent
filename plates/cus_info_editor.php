@@ -264,13 +264,13 @@ label{
             <?php } else { ?>
               <button class="type-btn1 <?=$btn_type=='basic-info-area'?'active':''?>" type="button" onClick="show_data_content(this, 'basic-info-area');">詳細資料</button>
               <button class="type-btn1 <?=$btn_type=='wallet-info-area'?'active':''?>" type="button" btn-type="wallet-info-area" onClick="reload_quota();show_data_content(this, 'wallet-info-area');">第三方帳號及錢包餘額</button>
-              <button class="type-btn1 <?=$btn_type=='bank-info-area'?'active':''?>" type="button" onclick="show_data_content(this, 'bank-info-area');">銀行信息</button>
+              <!--button class="type-btn1 <?=$btn_type=='bank-info-area'?'active':''?>" type="button" onclick="show_data_content(this, 'bank-info-area');">銀行信息</button-->
               <button class="type-btn1 " type="button" onClick="show_data_content(this, 'open-game-info-area');">開放遊戲設定</button>
-              <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group1-area');">體育設定</button>
+              <!--button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group1-area');">體育設定</button>
               <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group2-area');">彩票設定</button>
               <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group3-area');">真人設定</button>
               <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group4-area');">電子設定</button>
-              <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group6-area');">電競設定</button>
+              <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group6-area');">電競設定</button-->
             <?php } ?>
 		      	
         </div>
@@ -286,6 +286,19 @@ label{
           <!--slot=2-->
           <table class="table table-bordered basic-info-tb">
             <tbody>
+              <tr>
+                <td class="title">身份</td>
+                <td>
+                  <div>
+                    <select name="role" class="form-control input-inline">
+                      <option value="customer" <?= $user->role == 'customer' ? 'selected' : '' ?>>會員</option>
+                      <?php if ($etype == 'edit') { ?>
+                        <option value="agent" <?= $user->role == 'agent' ? 'selected' : '' ?>>代理</option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </td>
+              </tr>
               <tr>             
                 <td class="title">會員帳號</td>
                 <td ><input name="customer_userid" type="text" value="<?=e($user->username)?>" size="12" <?= $etype == 'edit' ? 'disabled': ''?>></td>
@@ -331,7 +344,7 @@ label{
                       <option  value="3" <?= $user->valid == 3 ? 'selected': ''?>> 鎖定</option>
 
                       <option  value="4" <?= $user->valid == 4 ? 'selected': ''?>> 停用</option>
-
+                      <option  value="5" <?= $user->valid == 5 ? 'selected': ''?>> 鎖定錢包</option>
 
                   </select>&nbsp;<font class="color-red1">[停押]: 全線停押，但可登入&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[停用]: 全線停用，且不可登入&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[鎖定]: 只鎖定該帳號不可登入，其他下線正常</font>
                   </div>
@@ -823,7 +836,45 @@ label{
   </div>
 </div>
 <div id="open-game-info-area" class="data-content hidden">
-    <div id="no-data"></div>
+    <!--slot=3-->
+    <div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('open-game-info')">儲存開放遊戲設定</button></div>
+    <form>
+        <div class="portlet light bordered">
+            <div class="portlet-body">
+                <!--slot=8-->
+                <!-- for occupy&game_status -->
+                <div class="portlet-title has_set_tool" style="background-color: rgba(241, 211, 15, 0.3); cursor: pointer;">
+                    <div class="caption" style="padding: 14px;">
+                        <i class="fa fa-cogs font-green-sharp"></i> <span class="caption-subject font-green-sharp bold uppercase" style="font-size: 16px;">開放遊戲&nbsp;<font class="txt-color1"></font></span>
+                    </div>
+                    <div class="tool"><a class="collapse" id="sport-title-expand"></a></div>
+                </div>
+                <div class="tabbable-line mt-20" style="">
+                    <div class="tab-content">
+                        <table id="game-status-table">
+                            <tbody>
+                              <?php foreach ($GameStoreTypes as $type) {?>
+                                <tr>
+                                <td><?= $type->name ?></td>
+                                <td>
+                                    <input type="checkbox" class="status-ckbox-all" spot="<?= $type->id ?>" />
+                                    全部
+                                    <?php foreach ($type->games as $game) {?>
+                                      <input type="checkbox" class="status-ckbox" name="game_status_arr[]" value="<?= $game->id ?>" spot="<?= $type->id ?>" <?= in_array($game->id, $user_open_game_ids) ? 'checked=""' : '' ?> />
+                                      <?= $game->name ?>
+                                    <?php } ?>
+                                </td>
+                                </tr>
+                              <?php } ?>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <br />
+            </div>
+        </div>
+    </form>
 </div>
 <div id="gstore-group1-area" class="data-content hidden">
     <div id="no-data"></div>
@@ -889,7 +940,7 @@ $(function() {
 		<script src="/templates/js/lang/tw.js?cache=203"></script>
         <script src="/templates/js/jquery.wallform.js?c=1" type="text/javascript"></script>
         <script src="/templates/js/bank.js?c=100" type="text/javascript"></script>
-        <script src="/templates/js/cus_info/editor.js?cache=160" type="text/javascript"></script>
+        <script src="/templates/js/cus_info/editor.js?cache=161" type="text/javascript"></script>
 
     </body>
 </html>

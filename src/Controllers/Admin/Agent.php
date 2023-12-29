@@ -21,6 +21,7 @@ use App\Models\Game as GameModel;
 use App\Models\User as UserModel;
 use App\Models\Period;
 use App\Models\UserLog;
+use App\Models\Config;
 
 class Agent extends AdminBase
 {
@@ -44,10 +45,16 @@ class Agent extends AdminBase
 				"extraCommissionRules" => $extraCommissionRules,
 			]);
 		} elseif ($get['edit_cus_level'] == 15) {
+
+			$top_cus_id = isset($get["top_cus_id"]) ? $get["top_cus_id"] : $_SESSION['id'];
+			$user = UserModel::find($top_cus_id);
+			$agent = UserModel::find($_SESSION['id']);
 			return $this->view->render('agent_info_manager_15', [
 				"commissionRules" => $commissionRules,
 				"retreatRules" => $retreatRules,
-				"top_cus_id" => isset($get["top_cus_id"]) ? $get["top_cus_id"] : $_SESSION['id']
+				"top_cus_id" => $top_cus_id,
+				"user" => $user,
+				"agent" => $agent,
 			]);
 		}
         
@@ -59,21 +66,24 @@ class Agent extends AdminBase
 
 		$edit_cus_level = intval($get['edit_cus_level']); // 14:总代理,15:代理
 		$where = array();
+		$where[] = array('parentUid', 0); //不要子帐号
 		//$where[] = array('status',1);
-		$start = 0;
-		if(isset($get['start']))
-			$start = intval($get['start']);
+		$offset = 0;
+		if(isset($get['offset']))
+			$offset = intval($get['offset']);
 		
-		$length = 0;
-		if(isset($get['length']))
-			$length = intval($get['length']);
+		$limit = 10;
+		if(isset($get['limit']))
+			$limit = intval($get['limit']);
 		
 		if ($edit_cus_level == 14) { //总代理
 			$where[] = array('role', 'topagent');
 			
 		} else { //代理
+			$pid = isset($get['top_cus_id']) ? $get['top_cus_id'] : $_SESSION['id'];
 			$where[] = array('role', 'agent');
-			$where[] = array('pid', $_SESSION['id']);
+			$where[] = array('parents', 'like','%/'.$pid.'/%');
+			// $where[] = array('pid', $pid);
 		}
 		
 
@@ -105,11 +115,167 @@ class Agent extends AdminBase
 			$where[] = array('invite_code', $get['search_invite_code']);
 		}
 
-		if (isset($get['top_cus_id']) && $get['top_cus_id'] != '') {
-			$where[] = array('pid', $get['top_cus_id']);
+		// if (isset($get['top_cus_id']) && $get['top_cus_id'] != '') {
+		// 	$where[] = array('pid', $get['top_cus_id']);
+		// }
+		
+		$datas = UserModel::with('commissionRule', 'extraCommissionRule', 'retreatRule')->where($where)->offset($offset)->take($limit)->get();
+		$min = collect($datas)->min('level');
+		
+		$frontUrl = Config::where('name','frontUrl')->pluck('value')->first();
+		$result = array();
+	 
+		foreach($datas as $data){
+			if ($data->level == $min) {
+				$data->pid = 0;
+			}
+
+			$data->commissionRule = $data->commissionRule ? $data->commissionRule->name : "";
+			$data->retreatRule = $data->retreatRule ? $data->retreatRule->name : "";
+
+			$child_member_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
+			$data->child_member_count = "<a href=\"/agent/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=15&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
+			$data->invite_code_url =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
+
+			$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
+			$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+
+			$data->action = $action;
+			//  $this->buildTreeAgent(0,$data,$result,$frontUrl);
+		}
+
+		$result = $datas;
+
+		$count = UserModel::where($where)->count();
+		if($result == null)$result = [];
+		$draw = 1;
+		if(isset($get['draw']))
+			$draw = intval($get['draw']);
+		$result = Functions::listData($draw ,$count,$count,$result);
+		return $response->withJson($result);
+	}
+
+	private function buildTreeAgent($n,$data,&$result,$frontUrl){
+		if($data != null){
+			
+			$parent = UserModel::where('id', $data->pid)->first();
+			$parent_name = $parent->username . "<br />(" . $parent->nickname . ")";
+			if ($data->valid == 1) {
+				$status = "<a class=\"status-btn status-open\" href=\"javascript:void(0);\">啟用</a>";
+			} elseif ($data->valid == 2) {
+				$status = "<a class=\"status-btn status-close\" href=\"javascript:void(0);\">停押</a>";
+			} elseif ($data->valid == 3) {
+				$status = "<a class=\"status-btn status-close\" href=\"javascript:void(0);\">鎖定</a>";
+			} elseif ($data->valid == 4) {
+				$status = "<a class=\"status-btn status-close\" href=\"javascript:void(0);\">停用</a>";
+			}
+			$commissionRule = $data->commissionRule ? $data->commissionRule->name : "";
+			$retreatRule = $data->retreatRule ? $data->retreatRule->name : "";
+			$child_member_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
+			$child_member_count = "<a href=\"/agent/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=15&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
+			//"<a href=\"cus_info_manager.php?edit_cus_level=16&search_customer_userid=jeffrey1&search_level=15&top_cus_id=51&edit_station_code=3&is_back=1\">1</a>"
+			$balance = $data->balance;
+			$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
+
+			$created_at = "<div align= center>".$data->created_at."</div>";
+			$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
+			$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+
+			//下级
+			$where = array();
+			$where[] = array('pid',$data->id);
+			$datas = UserModel::with('commissionRule', 'extraCommissionRule', 'retreatRule')->where($where)->get();
+			
+			$treeIcon = '';
+			$formatItem = array();
+			//if($datas && count($datas) > 0){
+			//	$treeIcon = '+';
+			//}
+			$tag = '';
+			for($i = 0;$i<$n;$i++)
+				$tag .= '　　　　';
+			$name = $tag .'<a class="nav-link" id="'.$data->id.'" parentId="'.$data->pid.'" parents='.$data->parents.$data->id.'/" level="'.$data->level.'" href="javascript:void(0)" onclick="extendChild('.$data->id.')"><img style="width:10px" src="/templates/images/sub-icon.png" />'.$treeIcon.'</a> <a class="status-btn status-open" href="javascript:void(0);">'.$data->level.'代</a>'.$data->username;
+			$formatItem[] = $name;
+			//$formatItem[] = $parent_name;
+			$formatItem[] = $status;
+			$formatItem[] = $commissionRule;
+			$formatItem[] = $retreatRule;
+			$formatItem[] = $child_member_count;
+			$formatItem[] = $balance;
+			$formatItem[] = $created_at;
+			$formatItem[] = $invite_code;
+			$formatItem[] = $action;
+			$result[] = $formatItem;
+
+			if($datas == null) return;
+			foreach($datas as $data){
+				$m = $n;
+				$this->buildTreeAgent(++$m,$data,$result,$frontUrl);
+			}
+		}
+	}
+
+	public function listAgentInfos_1107($request, $response)
+    {
+		$get = $request->getQueryParams();
+
+		$edit_cus_level = intval($get['edit_cus_level']); // 14:总代理,15:代理
+		$where = array();
+		$where[] = array('parentUid', 0); //不要子帐号
+		//$where[] = array('status',1);
+		$start = 0;
+		if(isset($get['start']))
+			$start = intval($get['start']);
+		
+		$length = 0;
+		if(isset($get['length']))
+			$length = intval($get['length']);
+		
+		if ($edit_cus_level == 14) { //总代理
+			$where[] = array('role', 'topagent');
+			
+		} else { //代理
+			$pid = isset($get['top_cus_id']) ? $get['top_cus_id'] : $_SESSION['id'];
+			$where[] = array('role', 'agent');
+			$where[] = array('pid', $pid);
 		}
 		
+
+		if ($get['search_customer_userid'] != '') {
+			if (isset($get['fuzzy_search']) && $get['fuzzy_search'] == 1) {
+				$where[] = array('username', 'like', "%" . $get['search_customer_userid'] . "%");
+			} else {
+				$where[] = array('username', $get['search_customer_userid']);
+			}
+		}
+
+		if ($get['search_status'] != -1) {
+			$where[] = array('valid', $get['search_status']);
+		}
+
+		if ($get['search_commission_rule'] != -1) {
+			$where[] = array('commission_rule_id', $get['search_commission_rule']);
+		}
+
+		if ($get['search_retreat_rule'] != -1) {
+			$where[] = array('retreat_rule_id', $get['search_retreat_rule']);
+		}
+
+		if ($get['search_extra_commission_rule'] != -1) {
+			$where[] = array('extra_commission_rule_id', $get['search_extra_commission_rule']);
+		}
+
+		if ($get['search_invite_code'] != '') {
+			$where[] = array('invite_code', $get['search_invite_code']);
+		}
+
+		// if (isset($get['top_cus_id']) && $get['top_cus_id'] != '') {
+		// 	$where[] = array('pid', $get['top_cus_id']);
+		// }
+		
 		$datas = UserModel::with('commissionRule', 'extraCommissionRule', 'retreatRule')->where($where)->skip($start)->take($length)->get();
+		
+		$frontUrl = Config::where('name','frontUrl')->pluck('value')->first();
 		$result = array();
 		if ($edit_cus_level == 14) { //总代理
 			foreach($datas as $data){
@@ -130,14 +296,14 @@ class Agent extends AdminBase
 				$child_count = UserModel::where('role', 'agent')->where('pid', $data->id)->count();
 				$child_count = "<a href=\"/agent/agent_info_manager?edit_cus_level=15&search_customer_userid={$data->username}&search_level=14&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_count}</a>";
 				//"<a href=\"agent_info_manager.php?edit_cus_level=15&search_customer_userid=jeffrey&search_level=14&top_cus_id=39&edit_station_code=3&is_back=1\">1</a>"
-				$child_member_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
+				$child_member_count = UserModel::getMembersOfTopAgent($data->id)->count();
 				$child_member_count = "<a href=\"/agent/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=14&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
 				//"<a href=\"cus_info_manager.php?edit_cus_level=16&search_customer_userid=jeffrey&search_level=14&top_cus_id=39&edit_station_code=3&is_back=1\">19</a>"
 				$balance = $data->balance;
-				$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}</a>";
+				$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
 	
 				$created_at = "<div align= center>".$data->created_at."</div>";
-				$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
+				$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
 				$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=14\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
 				$action .= "<a href=\"cus_info_log_list?user_id={$data->id}&is_back=1\"  class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>\n\t\t\t\t\t\t\t\t";
 
@@ -157,8 +323,11 @@ class Agent extends AdminBase
 			}
 		} else { //代理
 			foreach($datas as $data){
-				$name = $data->username . "<br />(" . $data->nickname . ")";
-				$parent = UserModel::where('role', 'topagent')->where('id', $data->pid)->first();
+				$name = "<a href='/agent/agent_info_manager?edit_cus_level=15&top_cus_id={$data->id}'>" . $data->username . "</a><br />(" . $data->nickname . ")";
+				
+				// $parent = UserModel::where('role', 'topagent')->where('id', $data->pid)->first();
+				$parent = UserModel::where('id', $data->pid)->first();
+
 				$parent_name = $parent->username . "<br />(" . $parent->nickname . ")";
 				if ($data->valid == 1) {
 					$status = "<a class=\"status-btn status-open\" href=\"javascript:void(0);\">啟用</a>";
@@ -175,12 +344,11 @@ class Agent extends AdminBase
 				$child_member_count = "<a href=\"/agent/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=15&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
 				//"<a href=\"cus_info_manager.php?edit_cus_level=16&search_customer_userid=jeffrey1&search_level=15&top_cus_id=51&edit_station_code=3&is_back=1\">1</a>"
 				$balance = $data->balance;
-				$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}</a>";
+				$invite_code =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
 	
 				$created_at = "<div align= center>".$data->created_at."</div>";
-				$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('https://tjwww.shopdd.xyz/?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
+				$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
 				$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
-				$action .= "<a href=\"cus_info_log_list?user_id={$data->id}&is_back=1\"  class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>\n\t\t\t\t\t\t\t\t";
 
 				$formatItem = array();
 				$formatItem[] = $name;
@@ -214,16 +382,19 @@ class Agent extends AdminBase
 		$etype = $get['etype'];
 		$edit_level = $get['edit_cus_level'];
 		
-		
+		$GameStoreTypes = array();
+		$user_open_game_ids = array();
 		if ($etype == 'edit') {
 			//编辑
 			$agent = UserModel::find(intval($get['edit_cus_id']));
 			$top_cus_id = $agent->pid;
-			
+			//开放游戏设定--------------------------------------
+			$GameStoreTypes = GameStoreTypeModel::with('games')->get();
+			$user_open_game_ids = $agent->games()->pluck('game_id')->toArray();
 		} else {
 			//新增
 			$agent = new UserModel;
-			$top_cus_id = $_SESSION['id'];
+			$top_cus_id = isset($get['top_cus_id']) ? $get['top_cus_id'] : $_SESSION['id'];
 		}
 		
 		$commissionRules = CommissionRuleModel::all();
@@ -239,6 +410,8 @@ class Agent extends AdminBase
 			"retreatRules" => $retreatRules,
 			"extraCommissionRules" => $extraCommissionRules,
 			"top_cus_id" => $top_cus_id,
+			"GameStoreTypes" => $GameStoreTypes,
+			"user_open_game_ids" => $user_open_game_ids,
 		]);
 	}
 
@@ -248,10 +421,37 @@ class Agent extends AdminBase
 		$post = $request->getParsedBody();
 		$id = $post['edit_cus_id'];
 		$etype = $post['etype'];
+		$save_type = $post['save_type'];
 		
-		if($etype == 'edit'){
-			$agent = UserModel::find($id);
-			if ($post['customer_pass1'] != '') {
+		if ($save_type == 'basic-info') {
+		
+			if($etype == 'edit'){
+				$agent = UserModel::find($id);
+				if ($post['customer_pass1'] != '') {
+					if (strlen($post['customer_pass1']) < 3) {
+						$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'6\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+						return $response->withJson($msg);
+					}
+					if ($post['customer_pass1'] != $post['customer_pass2']) {
+						$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'5\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+						return $response->withJson($msg);
+					}
+					$agent->password = crypt($post['customer_pass1'], '$1$' . substr(md5($agent->username), 5, 8));
+				}
+			} else {
+				$agent = new UserModel;
+				if ($post['customer_userid'] == '') {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'2\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				if (strlen($post['customer_userid']) < 2 || strlen($post['customer_userid']) > 10) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'13\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				if ($post['customer_pass1'] == '') {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'3\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
 				if (strlen($post['customer_pass1']) < 3) {
 					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'6\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 					return $response->withJson($msg);
@@ -260,79 +460,67 @@ class Agent extends AdminBase
 					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'5\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 					return $response->withJson($msg);
 				}
-				$agent->password = crypt($post['customer_pass1'], '$1$' . substr(md5($agent->username), 5, 8));
+				$exist = UserModel::where('username', $post['customer_userid'])->first();
+				if ($exist) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'11\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}
+				$agent->username = $post['customer_userid'];
+				$agent->password = crypt($post['customer_pass1'], '$1$' . substr(md5($post['customer_userid']), 5, 8));
+				$agent->level = $post['edit_cus_level'] == 14 ? 0 : 1;
+				$agent->pid = $post['top_cus_id'];
+				if ($post['top_cus_id']==''){
+					$agent->parents = "/1/";
+				}elseif ($post['top_cus_id'] == 1) {
+					$agent->parents = "/1/";
+				} else {
+					$top_parent = UserModel::find($post['top_cus_id']);
+					$agent->parents = $top_parent->parents . $post['top_cus_id'] ."/";
+					$agent->level = $top_parent->level + 1;
+				}
+				
+				
+				$agent->role = $post['edit_cus_level'] == 14 ? "topagent" : "agent";
 			}
-		} else {
-			$agent = new UserModel;
-			if ($post['customer_userid'] == '') {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'2\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+			if ($post['customer_name'] == '') {
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'7\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 				return $response->withJson($msg);
 			}
-			if (strlen($post['customer_userid']) < 2 || strlen($post['customer_userid']) > 10) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'13\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if ($post['customer_pass1'] == '') {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'3\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if (strlen($post['customer_pass1']) < 3) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'6\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			if ($post['customer_pass1'] != $post['customer_pass2']) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'5\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			$exist = UserModel::where('username', $post['customer_userid'])->first();
-			if ($exist) {
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'11\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
-				return $response->withJson($msg);
-			}
-			$agent->username = $post['customer_userid'];
-			$agent->password = crypt($post['customer_pass1'], '$1$' . substr(md5($post['customer_userid']), 5, 8));
-			$agent->level = $post['edit_cus_level'] == 14 ? 0 : 1;
-			$agent->pid = $post['top_cus_id'];
-			if ($post['top_cus_id']==''){
-				$agent->parents = "/1/";
-			}elseif ($post['top_cus_id'] == 1) {
-				$agent->parents = "/1/";
+			
+			$agent->nickname = $post['customer_name'];
+			$agent->valid = $post['customer_status'];
+			$agent->has_control_perm = $post['has_control_perm'];
+			$agent->commission_rule_id = $post['commission_rule_id'];
+			$agent->retreat_rule_id = $post['retreat_rule_id'];
+			$agent->extra_commission_rule_id = $post['extra_commission_rule_id'];
+			$agent->fee_percent = $post['fee_percent'];
+			$agent->note = $post['notes'];
+			
+			$agent->save();
+			if ($etype == 'add') {
+				$agent->invite_code = 'tjs' . ($agent->id + 99);
+				$agent->save();
+
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			} else {
-				$top_parent = UserModel::find($post['top_cus_id']);
-				$agent->parents = $top_parent->parents . $post['top_cus_id'] ."/";
+				
+				$userLog = new UserLog;
+				$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],'修改資料');
+				
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			}
-			
-			
-			$agent->role = $post['edit_cus_level'] == 14 ? "topagent" : "agent";
-		}
-		if ($post['customer_name'] == '') {
-			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'7\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+			return $response->withJson($msg);
+		} elseif ($save_type == 'open-game-info') {
+			//开放游戏设定
+			$edit_cus_level = $post['edit_cus_level'];
+			$game_status_arr = $post['game_status_arr'];
+			$agent = UserModel::find($id);
+			$agent->games()->sync($game_status_arr);
+
+
+			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			return $response->withJson($msg);
 		}
-		
-		$agent->nickname = $post['customer_name'];
-		$agent->valid = $post['customer_status'];
-		$agent->has_control_perm = $post['has_control_perm'];
-		$agent->commission_rule_id = $post['commission_rule_id'];
-		$agent->retreat_rule_id = $post['retreat_rule_id'];
-		$agent->extra_commission_rule_id = $post['extra_commission_rule_id'];
-		$agent->fee_percent = $post['fee_percent'];
-		$agent->note = $post['notes'];
-		
-		$agent->save();
-		if ($etype == 'add') {
-			$agent->invite_code = 'tjs' . ($agent->id + 99);
-			$agent->save();
-
-			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
-		} else {
-			
-			$userLog = new UserLog;
-			$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],'修改資料');
-			
-			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
-		}
-		return $response->withJson($msg);
 	}
 
 	//有效会员规则设定

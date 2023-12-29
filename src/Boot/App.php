@@ -46,7 +46,7 @@ class App extends \Slim\App {
 			$this->post('/agent/save_register', \App\Controllers\Admin::class . ':saveRegister');
             $this->get('/agent/sys_service', \App\Controllers\Admin::class . ':sysService');
 			$this->post('/agent/sys_service_save', \App\Controllers\Admin::class . ':sysServiceSave');
-            $this->get('/agent/customer_info', \App\Controllers\Admin::class . ':customerInfo');
+            $this->get('/agent/customer_info', \App\Controllers\Admin\User::class . ':customerInfo');
             $this->get('/agent/customer_bank_info', \App\Controllers\Admin::class . ':customerBankInfo');
             $this->get('/agent/customer_grade', \App\Controllers\Admin::class . ':customerGrade');
             $this->get('/agent/customer_mark', \App\Controllers\Admin::class . ':customerMark');
@@ -120,8 +120,8 @@ class App extends \Slim\App {
 			$this->any('/agent/cus_quota_log_op', \App\Controllers\Admin\Report::class . ':cusQuotaLog');
 			$this->get('/agent/agent_quota_log_manager', \App\Controllers\Admin::class . ':agentQuotaLogManager');
 			$this->any('/agent/agent_quota_log_op', \App\Controllers\Admin\Report::class . ':agentQuotaLog');
-			$this->get('/agent/all_calc_report_manager', \App\Controllers\Admin::class . ':allCalcReportManager');
-			$this->get('/agent/all_calc_agent_report_manager', \App\Controllers\Admin::class . ':allCalcAgentReportManager');
+			$this->get('/agent/all_calc_report_manager', \App\Controllers\Admin\Report::class . ':allCalcReportManager');
+			$this->get('/agent/all_calc_agent_report_manager', \App\Controllers\Admin\Report::class . ':allCalcAgentReportManager');
 			$this->get('/agent/game_report_manager', \App\Controllers\Admin::class . ':gameReportManager');
 			$this->get('/agent/cus_instant_bet_info_manager', \App\Controllers\Admin::class . ':cusInstantBetInfoManager');
 			$this->get('/agent/cus_bet_info_manager', \App\Controllers\Admin::class . ':cusBetInfoManager');
@@ -129,6 +129,11 @@ class App extends \Slim\App {
 			$this->get('/agent/cus_report_manager', \App\Controllers\Admin::class . ':cusReportManager');
 			$this->get('/agent/agent_report_manager', \App\Controllers\Admin::class . ':agentReportManager');
 			$this->get('/agent/change_order_logs_manager', \App\Controllers\Admin::class . ':changeOrderLogsManager');
+			$this->get('/agent/cus_bet_report_manager', \App\Controllers\Admin::class . ':cusBetReportManager');
+			$this->get('/agent/cus_bet_report_op', \App\Controllers\Admin::class . ':cusBetReportOp');
+			$this->get('/agent/team_report_manager', \App\Controllers\Admin::class . ':teamReportManager');
+			$this->get('/agent/team_report_water_op', \App\Controllers\Admin::class . ':teamReportWaterOp');
+			$this->get('/agent/team_report_take_op', \App\Controllers\Admin::class . ':teamReportTakeOp');
 			//系統管理
 			$this->get('/agent/cus_ip_manager', \App\Controllers\Admin::class . ':cusIpManager');
 			$this->get('/agent/employee_manager', \App\Controllers\Admin::class . ':employeeManager');
@@ -136,8 +141,10 @@ class App extends \Slim\App {
 			
 			//代理
 			$this->get('/agent/personal_info', \App\Controllers\Admin::class . ':personal_info');
-		 
-			$this->get('/agent/cus_info_manager', \App\Controllers\Admin::class . ':cus_info_manager');
+			$this->any('/agent/personal_info_op', \App\Controllers\Admin::class . ':personalInfoOp');
+			$this->get('/agent/personal_overview', \App\Controllers\Admin::class . ':personal_overview');
+			
+			$this->get('/agent/cus_info_manager', \App\Controllers\Admin\User::class . ':customerInfo');
 			
 			$this->any('/agent/cus_info_editor', \App\Controllers\Admin\User::class . ':cusInfoEditor');
 			$this->any('/agent/cus_info_editor_op', \App\Controllers\Admin\User::class . ':cusInfoEditorOp');
@@ -145,10 +152,15 @@ class App extends \Slim\App {
 			
 			$this->get('/agent/list_cus_infos', \App\Controllers\Admin\User::class . ':listCusInfos');
 			$this->get('/agent/sub_customer_manager', \App\Controllers\Admin::class . ':sub_customer_manager');
+			$this->get('/agent/sub_customer_editor', \App\Controllers\Admin::class . ':sub_customer_editor');
+			$this->any('/agent/sub_customer_op', \App\Controllers\Admin::class . ':subCustomerOp');
 			$this->get('/agent/cus_bank_info', \App\Controllers\Admin::class . ':cus_bank_info');
+			$this->any('/agent/cus_bank_info_op', \App\Controllers\Admin::class . ':cusBankInfoOp');
 			$this->get('/agent/cus_withdraw', \App\Controllers\Admin::class . ':cus_withdraw');
+			$this->any('/agent/cus_withdraw_op', \App\Controllers\Admin::class . ':cusWithdrawOp');
 			$this->get('/agent/online_cus_manager', \App\Controllers\Admin::class . ':onlineCustomer');
 			$this->get('/agent/self_quota_log_manager', \App\Controllers\Admin::class . ':self_quota_log_manager');
+			$this->any('/agent/self_quota_log_op', \App\Controllers\Admin\Report::class . ':selfQuotaLog');
         }
 		
 		

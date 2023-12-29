@@ -14,7 +14,7 @@ Class User extends Model
         return [];
     }
 	 
-    protected $hidden = ['deleted_at', 'passowrd'];
+    protected $hidden = ['deleted_at', 'password'];
 
 	public static function getRoleName($role){
 		if($role == 'agent')
@@ -63,6 +63,12 @@ Class User extends Model
 	public function gameUser(){
 		return $this->hasMany('App\Models\GameUser');
 	}
+
+    public function games()
+    {
+        return $this->belongsToMany('App\Models\Game', 'user_open_games', 'user_id', 'game_id');
+    }
+	
 	
 	public function login($username, $password)
     {
@@ -93,5 +99,33 @@ Class User extends Model
 		if($user == null)return false;
 		return $user->permissions->where('menu_id',$menu_id)->count() > 0 ;
 		 
+	}
+
+    //取得总代理的会员(不包含底下代理的会员)
+    public static function getMembersOfTopAgent($id, $query=false){
+        $agent = User::where('id', $id)->where('role', 'topagent')->first();
+        
+        $downAgents = User::where('pid', $agent->id)->where('role', 'agent')->get();
+
+        $id_arrays = array();
+        foreach ($downAgents as $item) {
+            $members = User::where('parents', 'like', '%/' .$item->id . '/%')->where('role', 'customer')->pluck('id')->toArray();
+
+            $id_arrays = array_merge($id_arrays, $members);
+        }
+        
+        if ($query) {
+            $users = User::where('parents', 'like', '%/' . $agent->id . '/%')
+            ->whereNotIn('id', $id_arrays)
+            ->where('role', 'customer');
+        } else {
+            $users = User::where('parents', 'like', '%/' . $agent->id . '/%')
+            ->whereNotIn('id', $id_arrays)
+            ->where('role', 'customer')
+            ->get();
+        }
+        
+
+        return $users;
 	}
 }
