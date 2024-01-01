@@ -28,7 +28,7 @@ class App extends \Slim\App {
 	}
 
 	public function setRoute() {
-		$this->get('/[index]', \App\Controllers\Home::class . ':index');
+		$this->get('/[index]', \App\Controllers\Admin::class . ':index');
 
 		//后台
         {
