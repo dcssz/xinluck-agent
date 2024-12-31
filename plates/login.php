@@ -43,7 +43,7 @@
 <!-- BEGIN LOGIN FORM -->
 <style>
 .login{
-	background-image:url(/templates/images/yabo3838-login-bk.png?cache=100);
+	/* background-image:url(/templates/images/yabo3838-login-bk.png?cache=100); */
 }
 
 </style>

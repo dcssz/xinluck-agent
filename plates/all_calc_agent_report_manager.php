@@ -254,7 +254,8 @@ td
 			 <th>總代返水<span class="plus-btn-class" onclick="plus_btn_click(this, 'cus-lev14-retreat');">+</span></th>
 			 <th class="cus-lev14-retreat hidden">退水規則</th>
 			 <th class="cus-lev14-retreat hidden">佔水</th>
-			 <th>會員輸贏</th>
+			 <th>投注輸贏</th>
+			 <th>輸贏結果</th>
 			 <th>總佣金</th>
 			 <th>代理佣金</th>
 			 <th>總代佣金<span class="plus-btn-class" onclick="plus_btn_click(this, 'cus-lev14-commission');">+</span></th>
@@ -288,7 +289,7 @@ td
 			 <td class=" cus-lev14-retreat hidden">0</td>
 			 <td class=" cus-lev14-retreat hidden">0</td>
 			 <td class=""><?=$allTotal->totalWinlose?></td>
-			 <td class="">0</td>
+			 <td class=""><?=$allTotal->totalNetAmount?></td>
 			 <td class="">0</td>
 			 <td class="">0</td>
 			 <td class=" cus-lev14-commission hidden">0</td>
@@ -329,7 +330,7 @@ td
 			 <td class="cus-lev14-retreat hidden">0</td>
 			 <td class="cus-lev14-retreat hidden">0</td>
 			 <td class=""><?=$user->totalWinlose?></td>
-			 <td class="">0</td>
+			 <td class=""><?=$user->totalNetAmount?></td>
 			 <td class="">0</td>
 			 <td class="">0</td>
 			 <td class="cus-lev14-commission hidden">0</td>

@@ -618,7 +618,9 @@ class Admin extends AdminBase
 		}
 		if (isset($get['search_customer_userid']) && $get['search_customer_userid'] != '') {
 			$u = User::where('username', $get['search_customer_userid'])->where('role', 'customer')->first();
-			$where[] = array('user_id', $u['id']);
+			if (!empty($u)) {
+				$where[] = array('user_id', $u['id']);
+			}
 		}
 		$sddate = isset($get['sddate']) ? $get['sddate'] : date('Y-m-d');
 		$eddate = isset($get['eddate']) ? $get['eddate'] : date('Y-m-d');
@@ -636,8 +638,14 @@ class Admin extends AdminBase
 			$length = intval($get['length']);
 		
 		$id = $_SESSION['id'];
-		$bets = Bet::whereHas('user',function($query) use ($id){
+		// echo json_encode($where);
+		// return;
+		$bets = Bet::whereHas('user',function($query) use ($id, $get){
 			$query->where('parents','like','%/'.$id.'/%');
+			// Check if search_customer_userid is set and not empty
+			if (empty($get['search_customer_userid'])) {
+				$query->orWhere('user_id', $id);
+			}
 		})->with('game', 'user.upper')->where($where)->skip($start)->take($length)->orderBy('id', 'desc')->get();
 		$totalRows = Bet::with('game')->where($where)->count();
 		$totalPages = ceil($totalRows / $length);
@@ -649,7 +657,8 @@ class Admin extends AdminBase
 			DB::raw('count(id) as Cnt'),
 			DB::raw('SUM(Amount) as totalAmount'),
 			DB::raw('SUM(valid_Amount) as totalValidAmount'),
-			DB::raw('SUM(winlose) as totalWinlose')
+			DB::raw('SUM(winlose) as totalWinlose'),
+			DB::raw('SUM(netAmount) as totalNetAmount'),
 		)->where($where)->first();
 
 		$page_summarys = new stdClass();
@@ -657,6 +666,7 @@ class Admin extends AdminBase
 		$page_summarys->totalAmount = $bets->sum('amount');
 		$page_summarys->totalValidAmount = $bets->sum('valid_amount');
 		$page_summarys->totalWinlose = $bets->sum('winlose');
+		$page_summarys->totalNetAmount = $bets->sum('netAmount');
 		 
         return $this->view->render('cus_bet_info_manager',[
 			'sddate'=>$sddate,
@@ -731,6 +741,8 @@ class Admin extends AdminBase
         return $this->view->render('cus_report_manager',[
 			'summarys'=>$summarys,
 			'search_customer_userid'=>$search_customer_userid,
+			'sddate'=>$sddate,
+			'eddate'=>$eddate,
 			'sdtime'=>$sdtime,
 			'edtime'=>$edtime,
 		]);
@@ -765,6 +777,7 @@ class Admin extends AdminBase
     {
 		$agent = User::where('id',$_SESSION['id'])->first();
 		$frontUrl = ConfigModel::where('name','frontUrl')->pluck('value')->first();
+		$frontUrl .= ConfigModel::where('name','line_liff_id')->pluck('value')->first();
         return $this->view->render('personal_info',['agent'=>$agent,'frontUrl'=>$frontUrl]);
 	}
 	public function personalInfoOp($request, $response)

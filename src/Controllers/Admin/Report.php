@@ -58,7 +58,8 @@ class Report extends AdminBase
 			$length = intval($get['length']);
 		
 		 
-		$users = User::select('username')->where('parents','like','%/'.$_SESSION['id'].'/%')->where('role', 'customer')->get();
+		// $users = User::select('username')->where('parents','like','%/'.$_SESSION['id'].'/%')->where('role', 'customer')->get();
+		$users = User::select('username')->where('parents','like','%/'.$_SESSION['id'].'/%')->orWhere('id', $_SESSION['id'])->get();
 		$usernames = array();
 		foreach($users as $user){
 			$usernames[] = $user->username;
@@ -437,6 +438,7 @@ class Report extends AdminBase
 		$id = $_SESSION['id'];
 		$summarys = Bet::whereHas('user',function($query) use ($id){
 			$query->where('parents','like','%/'.$id.'/%');
+			$query->orWhere('user_id', $id);
 		})->with('game') 
 		->join('games', 'bets.game_id', '=', 'games.id')
 		->select(
@@ -445,7 +447,8 @@ class Report extends AdminBase
 			DB::raw('SUM(Amount) as totalAmount'),
 			DB::raw('SUM(valid_Amount) as totalValidAmount'),
 			DB::raw('SUM(winlose) as totalWinlose'),
-			DB::raw('SUM(winlose * games.percent/100 * -1) as totalGameGive')
+			DB::raw('SUM(winlose * games.percent/100 * -1) as totalGameGive'),
+			DB::raw('SUM(netAmount) as totalNetAmount')
 		)->where($where)->groupBy('calDay')->orderBy('bets.id', 'desc')->get();
 
 		$where = array();
@@ -484,6 +487,7 @@ class Report extends AdminBase
 				'totalAmount'=>0,
 				'totalValidAmount'=>0,
 				'totalWinlose'=>0,
+				'totalNetAmount'=>0,
 				'totalGameGive'=>0,//厂商上缴
 				'money_in'=>0,
 				'money_out'=>0,
@@ -497,6 +501,7 @@ class Report extends AdminBase
 			$result[$summary->calDay]['totalValidAmount'] = floatval($summary->totalValidAmount);
 			$result[$summary->calDay]['totalWinlose'] = floatval($summary->totalWinlose);
 			$result[$summary->calDay]['totalGameGive'] = floatval($summary->totalGameGive);
+			$result[$summary->calDay]['totalNetAmount'] = floatval($summary->totalNetAmount);
 			$result[$summary->calDay]['Cnt'] = $summary->Cnt;
 
 			$result[$summary->calDay]['total'] += floatval($summary->totalGameGive);
@@ -519,6 +524,7 @@ class Report extends AdminBase
 		$allTotal->totalValidAmount = 0;
 		$allTotal->totalWinlose = 0;
 		$allTotal->totalGameGive = 0;
+		$allTotal->totalNetAmount = 0;
 		$allTotal->money_in = 0;
 		$allTotal->money_out = 0;
 		$allTotal->retreat = 0;
@@ -529,6 +535,7 @@ class Report extends AdminBase
 			$allTotal->totalValidAmount += $item['totalValidAmount'];
 			$allTotal->totalWinlose += $item['totalWinlose'];
 			$allTotal->totalGameGive += $item['totalGameGive'];
+			$allTotal->totalNetAmount += $item['totalNetAmount'];
 			$allTotal->retreat += $item['retreat'];
 			$allTotal->Cnt += $item['Cnt'];
 			$allTotal->money_in += $item['money_in'];
@@ -569,7 +576,7 @@ class Report extends AdminBase
 
 			} elseif ($target->role == 'agent') { 
 				//列出底下所有会员
-				$users = User::where('parents', 'like', '%/' .$pid . '/%')->where('role', 'customer')->get();
+				$users = User::where('parents', 'like', '%/' .$pid . '/%')->orWhere('id', $pid)->get();
 			}
 			
 		}
@@ -639,6 +646,10 @@ class Report extends AdminBase
 				$where[] = array($dateTimeColumn,'>=',$sddate.' ' .$sdtime);
 				$where[] = array($dateTimeColumn,'<=',$eddate.' ' .$edtime);
 				//注单
+				$userIds = User::where('id', $user->id)
+				->orWhere('parents', 'like', '%/' .$user->id . '/%')
+				->pluck('id');
+
 				$summarys = Bet::join('games', 'bets.game_id', '=', 'games.id')
 				->join('users', 'bets.user_id', '=', 'users.id')
 				->select(
@@ -646,9 +657,10 @@ class Report extends AdminBase
 					DB::raw('SUM(Amount) as totalAmount'),
 					DB::raw('SUM(valid_Amount) as totalValidAmount'),
 					DB::raw('SUM(winlose) as totalWinlose'),
-					DB::raw('SUM(winlose * games.percent/100 * -1) as totalGameGive')
-				)->where($where)->where('users.parents', 'like', '%/' .$user->id . '/%')->orderBy('games.id', 'desc')->first();
-	
+					DB::raw('SUM(winlose * games.percent/100 * -1) as totalGameGive'),
+					DB::raw('SUM(netAmount) as totalNetAmount')
+				)->where($where)->whereIn('bets.user_id',$userIds)->orderBy('games.id', 'desc')->first();
+
 				$where = array();
 				$where[] = array('user_money.created_at','>=',$sddate.' ' .$sdtime);
 				$where[] = array('user_money.created_at','<=',$eddate.' ' .$edtime);
@@ -685,6 +697,7 @@ class Report extends AdminBase
 				$user->money_out = floatval($money_out->money_out);
 				$user->retreat = floatval($userMoneys->retreat);
 				$user->total +=  $user->retreat + $user->totalWinlose + $user->totalGameGive;
+				$user->totalNetAmount +=  $summarys->totalNetAmount;
 			} else {
 				$users->forget($k);
 			}
@@ -708,6 +721,7 @@ class Report extends AdminBase
 		$allTotal->money_out = 0;
 		$allTotal->retreat = 0;
 		$allTotal->total = 0;
+		$allTotal->totalNetAmount = 0;
 		foreach($users as $user){
 			$allTotal->totalAmount += $user->totalAmount;
 			$allTotal->totalValidAmount += $user->totalValidAmount;
@@ -719,6 +733,7 @@ class Report extends AdminBase
 			$allTotal->retreat += $user->retreat;
 
 			$allTotal->total +=  $user->retreat + $user->totalWinlose + $user->totalGameGive;
+			$allTotal->totalNetAmount +=  $user->totalNetAmount;
 		}
 		
         return $this->view->render('all_calc_agent_report_manager',[

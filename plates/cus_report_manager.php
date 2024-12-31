@@ -75,8 +75,8 @@ td
 		<div class="act-group">
 			<div class="date-div">
 				<div>日期區間</div>&nbsp;
-				<div class="input-group input-small date date-picker sddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-start-date" name="sddate" value="<?=date('Y-m-d')?>" readonly>
+				<div class="input-group input-small date date-picker sddate" data-date="<?=$sddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-start-date" name="sddate" value="<?=$sddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -92,8 +92,8 @@ td
 					</span>
 				</div>
 				<div class="sign">~</div>
-				<div class="input-group input-small date date-picker eddate" data-date="<?=date('Y-m-d')?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
-					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=date('Y-m-d')?>" readonly>
+				<div class="input-group input-small date date-picker eddate" data-date="<?=$eddate?>" data-date-format="yyyy-mm-dd" data-date-viewmode="years">
+					<input type="text" class="form-control" id="search-end-date" name="eddate" value="<?=$eddate?>" readonly>
 					<span class="input-group-btn">
 						<button class="btn blue" type="button">
 						<i class="fa fa-calendar"></i>
@@ -191,7 +191,7 @@ td
 					<tr>
 						<td><?=$bet->user->username?></td>
 						<td><?=$bet->upper?></td>
-						<td><a href="cus_bet_info_manager"><?=$bet->Cnt?></a></td>
+						<td><a href="cus_bet_info_manager?sddate=<?= $sddate?>&sdtime=<?= $sdtime?>&eddate=<?= $eddate?>&edtime=<?= $edtime?>"><?=$bet->Cnt?></a></td>
 						<td><?=$bet->totalAmount?></td>
 						<td><?=$bet->totalValidAmount?></td>
 						<td><?=$bet->totalWinlose?></td>

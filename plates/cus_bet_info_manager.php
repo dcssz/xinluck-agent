@@ -267,7 +267,8 @@ td
 						<th>時間</th>
 						<th>投注金額</th>
 						<th>有效投注</th>
-						<th>會員輸贏</th>
+						<th>投注輸贏</th>
+						<th>輸贏結果</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -285,6 +286,7 @@ td
 						<td><?=$bet->amount?></td>
 						<td><?=$bet->valid_amount?></td>
 						<td><?=$bet->winlose?></td>
+						<td><?=$bet->netAmount?></td>
 					</tr>
 					<?php
 					}
@@ -295,6 +297,7 @@ td
 						<td><?=$summarys->totalAmount?></td>
 						<td><?=$summarys->totalValidAmount?></td>
 						<td class="green-txt"><?=$summarys->totalWinlose?></td>
+						<td class="green-txt"><?=$summarys->totalNetAmount?></td>
 					</tr>
 					<tr class="total-tr">
 						<td class="align-r">小計</td>
@@ -302,6 +305,7 @@ td
 						<td><?=$page_summarys->totalAmount?></td>
 						<td><?=$page_summarys->totalValidAmount?></td>
 						<td class="green-txt"><?=$page_summarys->totalWinlose?></td>
+						<td class="green-txt"><?=$page_summarys->totalNetAmount?></td>
 					</tr>
 				</tbody>
 				 
