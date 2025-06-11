@@ -19,6 +19,7 @@ use App\Models\GameStore as GameStoreModel;
 use App\Models\GameMark as GameMarkModel;
 use App\Models\Game as GameModel;
 use App\Models\User as UserModel;
+use App\Models\UserMoney as UserMneyModel;
 use App\Models\Period;
 use App\Models\UserLog;
 use App\Models\Config;
@@ -139,6 +140,7 @@ class Agent extends AdminBase
 
 			$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+			$action .= "<a href=\"javascript:void(0);\" onclick=\"show({$data->id});\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 調額 </a>\n\t\t\t\t\t\t\t\t";
 
 			$data->action = $action;
 			//  $this->buildTreeAgent(0,$data,$result,$frontUrl);
@@ -500,6 +502,7 @@ class Agent extends AdminBase
 			if ($etype == 'add') {
 				$agent->invite_code = 'tjs' . ($agent->id + 99);
 				$agent->save();
+				$agent->games()->sync(GameModel::pluck('id')->all());
 
 				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			} else {
@@ -1248,4 +1251,316 @@ class Agent extends AdminBase
         return $this->view->render('period_audit_manager');
 	}
  
+	public function getAgentInfo($request, $response)
+	{
+		try {
+			// 獲取請求參數
+			$params = $request->getParsedBody();
+			$id = isset($params['id']) ? intval($params['id']) : 0;
+			
+			if (!$id) {
+				return $response->withJson([
+					'status' => 'error',
+					'message' => '未提供有效的用戶ID',
+					'params' => $params,
+				]);
+			}
+
+			// 查詢用戶資訊
+			$agent = UserModel::with(['commissionRule', 'retreatRule', 'extraCommissionRule'])
+				->where('id', $id)
+				->first();
+
+			if (!$agent) {
+				return $response->withJson([
+					'status' => 'error', 
+					'message' => '找不到該用戶'
+				]);
+			}
+
+			// 返回用戶資訊
+			return $response->withJson([
+				'status' => 'success',
+				'data' => [
+					'id' => $agent->id,
+					'account' => $agent->username,
+					'nickname' => $agent->nickname,
+					'balance' => $agent->balance,
+					'status' => $agent->valid,
+					'commissionRule' => $agent->commissionRule ? $agent->commissionRule->name : '',
+					'retreatRule' => $agent->retreatRule ? $agent->retreatRule->name : '',
+					'extraCommissionRule' => $agent->extraCommissionRule ? $agent->extraCommissionRule->name : '',
+					'created_at' => $agent->created_at
+				]
+			]);
+
+		} catch (\Exception $e) {
+			return $response->withJson([
+				'status' => 'error',
+				'message' => '系統錯誤',
+				'debug' => $e->getMessage()
+			]);
+		}
+	}
+
+	public function agentAdjustFunds($request, $response)
+	{
+		try {
+			// 獲取請求參數
+			$params = $request->getParsedBody();
+			$id = isset($params['id']) ? intval($params['id']) : 0;
+			$fundType = isset($params['fundType']) ? intval($params['fundType']) : 1;
+			$operationType = isset($params['operationType']) ? $params['operationType'] : '';
+			$amount = isset($params['amount']) ? floatval($params['amount']) : 0;
+			$reason = isset($params['reason']) ? $params['reason'] : '';
+			$notes = isset($params['notes']) ? $params['notes'] : '';
+
+			// 參數驗證
+			if (!$id || !$fundType || !$operationType || !$amount || !$reason) {
+				return $response->withJson([
+					'status' => 'error',
+					'message' => '請填寫完整資訊'
+				]);
+			}
+
+			// 獲取點數比例
+			$pointRatio = Config::where('name', 'point_ratio')->pluck('value')->first();
+
+			// 設置交易隔離級別為 SERIALIZABLE
+			DB::statement('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+			// 開始交易
+			DB::beginTransaction();
+			try {
+				// 鎖定用戶記錄
+				$agent = UserModel::lockForUpdate()->find($id);
+				if (!$agent) {
+					throw new \Exception('找不到該用戶');
+				}
+
+				// 鎖定上層代理記錄
+				$parentAgent = null;
+				if ($agent->pid > 0) {
+					$parentAgent = UserModel::lockForUpdate()->find($agent->pid);
+					if (!$parentAgent) {
+						throw new \Exception('找不到上層代理');
+					}
+				}
+				
+				// 根據不同的fundType處理餘額
+				if ($fundType == 1) { // 保證金
+					$adjustAmount = $operationType === 'in' ? $amount : -$amount;
+					$newMargin = $agent->margin + $adjustAmount;
+					$pointAmount = $adjustAmount * $pointRatio;
+					$newBalance = $agent->balance + $pointAmount;
+
+					// 檢查本人餘額
+					if ($newMargin < 0 || $newBalance < 0) {
+						throw new \Exception('餘額不足');
+					}
+
+					// 處理上層代理餘額
+					if ($parentAgent && $agent->role != 'topagent') {
+						$newParentMargin = $parentAgent->margin - $adjustAmount;
+						$newParentBalance = $parentAgent->balance - $pointAmount;
+						
+						// 檢查上層代理餘額
+						if ($newParentMargin < 0 || $newParentBalance < 0) {
+							throw new \Exception('上層代理餘額不足');
+						}
+
+						// 創建上層代理保證金流水
+						$parentMarginMoney = new UserMneyModel();
+						$parentMarginMoney->user_id = $parentAgent->id;
+						$parentMarginMoney->username = $parentAgent->username;
+						$parentMarginMoney->assets = $parentAgent->margin;
+						$parentMarginMoney->money = $amount;
+						$parentMarginMoney->balance = $newParentMargin;
+						$parentMarginMoney->reason = sprintf("%s (保證金-下級調整) - %s", $reason, "調整至 {$agent->username}");
+						$parentMarginMoney->notes = $notes;
+						$parentMarginMoney->order_id = 0;
+						$parentMarginMoney->withdraw_id = 0;
+						$parentMarginMoney->operate_type = $operationType === 'in' ? 2 : 1; // 相反操作
+						$parentMarginMoney->trans_type = 1;
+						$parentMarginMoney->money_type = 1;
+						$parentMarginMoney->operator = $_SESSION['username'];
+						$parentMarginMoney->created_at = date('Y-m-d H:i:s');
+						$parentMarginMoney->updated_at = date('Y-m-d H:i:s');
+						$parentMarginMoney->status = 1;
+						$parentMarginMoney->save();
+
+						// 創建上層代理點數流水
+						$parentPointMoney = new UserMneyModel();
+						$parentPointMoney->user_id = $parentAgent->id;
+						$parentPointMoney->username = $parentAgent->username;
+						$parentPointMoney->assets = $parentAgent->balance;
+						$parentPointMoney->money = abs($pointAmount);
+						$parentPointMoney->balance = $newParentBalance;
+						$parentPointMoney->reason = sprintf("%s (點數轉換-下級調整) - %s", $reason, "調整至 {$agent->username}");
+						$parentPointMoney->notes = $notes;
+						$parentPointMoney->order_id = 0;
+						$parentPointMoney->withdraw_id = 0;
+						$parentPointMoney->operate_type = $operationType === 'in' ? 2 : 1; // 相反操作
+						$parentPointMoney->trans_type = 1;
+						$parentPointMoney->money_type = 2;
+						$parentPointMoney->operator = $_SESSION['username'];
+						$parentPointMoney->created_at = date('Y-m-d H:i:s');
+						$parentPointMoney->updated_at = date('Y-m-d H:i:s');
+						$parentPointMoney->status = 1;
+						$parentPointMoney->save();
+
+						// 更新上層代理餘額
+						$parentAgent->margin = $newParentMargin;
+						$parentAgent->balance = $newParentBalance;
+						$parentAgent->save();
+					}
+
+					// 創建保證金流水記錄
+					$marginMoney = new UserMneyModel();
+					$marginMoney->user_id = $agent->id;
+					$marginMoney->username = $agent->username;
+					$marginMoney->assets = $agent->margin;
+					$marginMoney->money = $amount;
+					$marginMoney->balance = $newMargin;
+					$marginMoney->reason = sprintf("%s (保證金) - %s", $reason, "調整自 {$agent->username}");
+					$marginMoney->notes = $notes;
+					$marginMoney->order_id = 0;
+					$marginMoney->withdraw_id = 0;
+					$marginMoney->operate_type = $operationType === 'in' ? 1 : 2;
+					$marginMoney->trans_type = 1;
+					$marginMoney->money_type = 1; // 保證金
+					$marginMoney->operator = $_SESSION['username'];
+					$marginMoney->created_at = date('Y-m-d H:i:s');
+					$marginMoney->updated_at = date('Y-m-d H:i:s');
+					$marginMoney->status = 1;
+					$marginMoney->save();
+
+					// 創建點數流水記錄
+					$pointMoney = new UserMneyModel();
+					$pointMoney->user_id = $agent->id;
+					$pointMoney->username = $agent->username;
+					$pointMoney->assets = $agent->balance;
+					$pointMoney->money = abs($pointAmount);
+					$pointMoney->balance = $newBalance;
+					$pointMoney->reason = sprintf("%s (點數轉換) - %s", $reason, "調整自 {$agent->username}");
+					$pointMoney->notes = $notes;
+					$pointMoney->order_id = 0;
+					$pointMoney->withdraw_id = 0;
+					$pointMoney->operate_type = $operationType === 'in' ? 1 : 2;
+					$pointMoney->trans_type = 1;
+					$pointMoney->money_type = 2; // 點數
+					$pointMoney->operator = $_SESSION['username'];
+					$pointMoney->created_at = date('Y-m-d H:i:s');
+					$pointMoney->updated_at = date('Y-m-d H:i:s');
+					$pointMoney->status = 1;
+					$pointMoney->save();
+
+					// 更新用戶餘額
+					$agent->margin = $newMargin;
+					$agent->balance = $newBalance;
+
+				} else { // 點數
+					$adjustAmount = $operationType === 'in' ? $amount : -$amount;
+					$newBalance = $agent->balance + $adjustAmount;
+
+					// 檢查本人餘額
+					if ($newBalance < 0) {
+						throw new \Exception('餘額不足');
+					}
+
+					// 處理上層代理餘額
+					if ($parentAgent && $agent->role != 'topagent') {
+
+						$newParentBalance = $parentAgent->balance - $adjustAmount;
+						// throw new \Exception($newParentBalance);
+						// 檢查上層代理餘額
+						if ($newParentBalance < 0) {
+							throw new \Exception('代理餘額不足, 無法調整');
+						}
+
+						// 創建上層代理點數流水
+						$parentUserMoney = new UserMneyModel();
+						$parentUserMoney->user_id = $parentAgent->id;
+						$parentUserMoney->username = $parentAgent->username;
+						$parentUserMoney->assets = $parentAgent->balance;
+						$parentUserMoney->money = $amount;
+						$parentUserMoney->balance = $newParentBalance;
+						$parentUserMoney->reason = sprintf("%s (下級調整) - %s", $reason, "調整自 {$agent->username}");
+						$parentUserMoney->notes = $notes;
+						$parentUserMoney->order_id = 0;
+						$parentUserMoney->withdraw_id = 0;
+						$parentUserMoney->operate_type = $operationType === 'in' ? 2 : 1; // 相反操作
+						$parentUserMoney->trans_type = 1;
+						$parentUserMoney->money_type = 2;
+						$parentUserMoney->operator = $_SESSION['username'];
+						$parentUserMoney->created_at = date('Y-m-d H:i:s');
+						$parentUserMoney->updated_at = date('Y-m-d H:i:s');
+						$parentUserMoney->status = 1;
+						$parentUserMoney->save();
+
+						// 更新上層代理餘額
+						$parentAgent->balance = $newParentBalance;
+						$parentAgent->save();
+					}
+
+					// 創建點數流水記錄
+					$userMoney = new UserMneyModel();
+					$userMoney->user_id = $agent->id;
+					$userMoney->username = $agent->username;
+					$userMoney->assets = $agent->balance;
+					$userMoney->money = $amount;
+					$userMoney->balance = $newBalance;
+					$userMoney->reason = sprintf("%s - %s", $reason, "調整自 {$agent->username}");
+					$userMoney->notes = $notes;
+					$userMoney->order_id = 0;
+					$userMoney->withdraw_id = 0;
+					$userMoney->operate_type = $operationType === 'in' ? 1 : 2;
+					$userMoney->trans_type = 1;
+					$userMoney->money_type = 2; // 點數
+					$userMoney->operator = $_SESSION['username'];
+					$userMoney->created_at = date('Y-m-d H:i:s');
+					$userMoney->updated_at = date('Y-m-d H:i:s');
+					$userMoney->status = 1;
+					$userMoney->save();
+
+					// 更新用戶餘額
+					$agent->balance = $newBalance;
+				}
+
+				$agent->save();
+
+				// 記錄用戶操作日誌
+				$userLog = new UserLog();
+				$logContent = ($operationType === 'in' ? '存入' : '取出') . 
+							($fundType === 1 ? '保證金' : '點數') . 
+							" {$amount}, 原因: {$reason}";
+				if ($fundType === 1) {
+					$logContent .= sprintf(", 轉換點數: %.2f", $pointAmount);
+				}
+				$userLog->saveLog($id, 1, '資金調度', $_SESSION['username'], $logContent);
+
+				DB::commit();
+
+				return $response->withJson([
+					'status' => 'success',
+					'message' => '操作成功',
+					'data' => [
+						'newBalance' => $agent->balance,
+						'newMargin' => $fundType == 1 ? $agent->margin : null,
+						'parentNewBalance' => $parentAgent ? $parentAgent->balance : null,
+						'parentNewMargin' => $fundType == 1 && $parentAgent ? $parentAgent->margin : null
+					]
+				]);
+
+			} catch (\Exception $e) {
+				DB::rollBack();
+				throw $e;
+			}
+
+		} catch (\Exception $e) {
+			return $response->withJson([
+				'status' => 'error',
+				'message' => $e->getMessage()
+			]);
+		}
+	}
 }

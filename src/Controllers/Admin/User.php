@@ -12,7 +12,7 @@ use App\Models\User as UserModel;
 use App\Models\UserMoney as UserMoney;
 use App\Models\CusGrade as CusGradeModel;
 use App\Models\CusMark as CusMarkModel;
-use App\Models\Game  ;
+use App\Models\Game;
 use App\Models\GameUser as GameUserModel;
 use App\Models\GameStoreType as GameStoreTypeModel;
 use App\Models\Config;
@@ -208,6 +208,7 @@ class User extends AdminBase
 			$action .= "<a href=\"cus_instant_bet_info_manager?search_customer_userid={$data->username}&search_level=16&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 投注 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_report_manager?search_customer_userid={$data->username}&search_level=16&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 報表 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_quota_log_manager?search_customer_userid={$data->username}&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 日誌 </a>\n\t\t\t\t\t\t\t\t";
+			$action .= "<a href=\"javascript:void(0);\" onclick=\"show({$data->id});\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 調額 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "</div>";
 
 			$data->action = $action;
@@ -541,6 +542,7 @@ class User extends AdminBase
 			if ($etype == 'add') {
 				$user->invite_code = 'tjs' . ($user->id + 99);
 				$user->save();
+				$user->games()->sync(Game::pluck('id')->all());
 
 				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
 			} else {

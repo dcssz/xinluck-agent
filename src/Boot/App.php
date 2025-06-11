@@ -66,6 +66,9 @@ class App extends \Slim\App {
 			$this->get('/agent/list_agent_infos', \App\Controllers\Admin\Agent::class . ':listAgentInfos');
 			$this->get('/agent/agent_info_editor', \App\Controllers\Admin\Agent::class . ':agentInfoEditor');
 			$this->post('/agent/save_agent_info', \App\Controllers\Admin\Agent::class . ':saveAgentInfo');
+			$this->post('/agent/get_agent_info', \App\Controllers\Admin\Agent::class . ':getAgentInfo');
+			$this->post('/agent/agent_adjust_funds', \App\Controllers\Admin\Agent::class . ':agentAdjustFunds');
+
 			$this->get('/agent/effect_cus_rule_manager', \App\Controllers\Admin\Agent::class . ':effectCusRuleManager');
 			$this->get('/agent/list_effect_cus_rules', \App\Controllers\Admin\Agent::class . ':listEffectCusRules');
 			$this->post('/agent/effect_cus_rule_editor', \App\Controllers\Admin\Agent::class . ':effectCusRulesEditor');

@@ -46,6 +46,9 @@ return [
 			['/agent/list_agent_infos', $allRoles, ['get']],
 			['/agent/agent_info_editor', $allRoles, ['get', 'post']],
 			['/agent/save_agent_info', $allRoles, ['get', 'post']],
+			['/agent/get_agent_info', $allRoles, ['get', 'post']],
+			['/agent/agent_adjust_funds', $allRoles, ['post']],
+
 			['/agent/effect_cus_rule_manager', $allRoles, ['get']],
 			['/agent/list_effect_cus_rules', $allRoles, ['get']],
 			['/agent/effect_cus_rule_editor', $allRoles, ['post']],

@@ -412,6 +412,64 @@
 
         </div>
 
+        <!-- 資金調度對話框模板 -->
+        <div id="adjust-funds-template" style="display:none;">
+            <div class="adjust-funds-dialog" style="padding:20px;">
+                <div class="form-group">
+                    <label>會員帳號</label>
+                    <input type="text" class="form-control" id="account" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>金額類型</label>
+                    <select class="form-control" id="fund_type">
+                        <!-- <option value="1">保證金</option> -->
+                        <option value="2">點數</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>操作類型</label>
+                    <select class="form-control" id="operation_type">
+                        <option value="in">存入資金</option>
+                        <option value="out">取出資金</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>調度金額</label>
+                    <input type="number" class="form-control" id="amount" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label>調度原因</label>
+
+                    <select class="form-control" id="in-adjust-reason" name="in_adjust_reason" style="display:none;">
+                        <option value="遺失額度補回">遺失額度補回</option>
+                        <option value="測試金存入">測試金存入</option>
+                        <option value="人工存入優惠金">人工存入優惠金</option>
+                        <option value="代理下放額度">代理下放額度</option>
+                        <option value="打碼量調整">打碼量調整</option>
+                        <option value="其他">其他</option>
+                    </select>
+                    
+                    <select class="form-control" id="out-adjust-reason" name="out_adjust_reason" style="display:none;">
+                        <option value="入款誤存">入款誤存</option>
+                        <option value="異常額度扣除">異常額度扣除</option>
+                        <option value="測試金扣除">測試金扣除</option>
+                        <option value="人工扣除優惠金">人工扣除優惠金</option>
+                        <option value="提出返水">提出返水</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>備註</label>
+                    <textarea class="form-control" id="notes" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
     </div>
     <!--[if lt IE 9]>
 <script src="/assets/global/plugins/respond.min.js"></script>
@@ -618,6 +676,125 @@
             }
 
 			return result;
+		}
+
+        function show(id) {
+			// 先發送 AJAX 請求獲取會員資訊
+			$.ajax({
+				url: '/agent/get_agent_info',  // 請根據實際的API路徑調整
+				type: 'POST',
+				data: {
+					id: id
+				},
+				dataType: 'json',
+				success: function(response) {
+					if (response.status === 'success') {
+						// 獲取模板內容
+						let content = $('#adjust-funds-template').html();
+						
+						// 開啟對話框
+						layer.open({
+							type: 1,
+							title: '資金調度',
+							area: ['500px', '650px'],
+							content: content,
+							success: function(layero, index) {
+								// 設置會員帳號
+								$(layero).find('#account').val(response.data.account);
+
+								// 初始化顯示存入原因
+								$(layero).find('#in-adjust-reason').show();
+								$(layero).find('#out-adjust-reason').hide();
+								
+								// 監聽操作類型變更
+								$(layero).find('#operation_type').on('change', function() {
+									if($(this).val() === 'in') {
+										$(layero).find('#in-adjust-reason').show();
+										$(layero).find('#out-adjust-reason').hide();
+									} else {
+										$(layero).find('#in-adjust-reason').hide();
+										$(layero).find('#out-adjust-reason').show();
+									}
+								});
+								
+								// 如果需要顯示其他會員資訊，可以在這裡設置
+								// 例如：餘額資訊等
+							},
+							btn: ['確定', '取消'],
+							yes: function(index, layero) {
+								handleFundAdjustment(layero, index, id);
+							}
+						});
+					} else {
+						layer.msg('獲取會員資訊失敗：' + response.message);
+					}
+				},
+				error: function(xhr, status, error) {
+					layer.msg('系統錯誤，請稍後再試');
+					console.error('AJAX Error:', error);
+				}
+			});
+		}
+
+		// 處理資金調度的函數
+		function handleFundAdjustment(layero, index, id) {
+			// 根據操作類型獲取對應的原因
+			let operationType = $(layero).find('#operation_type').val();
+			let reason = operationType === 'in' ? 
+				$(layero).find('#in-adjust-reason').val() : 
+				$(layero).find('#out-adjust-reason').val();
+			
+			let data = {
+				id: id,
+				account: $(layero).find('#account').val(),
+				fundType: $(layero).find('#fund_type').val(),
+				operationType: operationType,
+				amount: $(layero).find('#amount').val(),
+				reason: reason,
+				notes: $(layero).find('#notes').val()
+			};
+
+			// 表單驗證
+			if (!validateFundAdjustment(data)) {
+				return;
+			}
+
+			// 發送資金調度請求
+			$.ajax({
+				url: '/agent/agent_adjust_funds',  // 請根據實際的API路徑調整
+				type: 'POST',
+				data: data,
+				dataType: 'json',
+				success: function(response) {
+					if (response.status === 'success') {
+						layer.msg('資金調度成功');
+						layer.close(index);
+						// 可能需要重新整理表格數據
+						// reloadTable();
+					} else {
+						layer.msg('資金調度失敗：' + response.message);
+					}
+				},
+				error: function(xhr, status, error) {
+					layer.msg('系統錯誤，請稍後再試');
+					console.error('AJAX Error:', error);
+				}
+			});
+		}
+
+		// 表單驗證函數
+		function validateFundAdjustment(data) {
+			if (!data.amount || data.amount <= 0) {
+				layer.msg('請輸入有效的調度金額');
+				return false;
+			}
+			
+			if (!data.reason.trim()) {
+				layer.msg('請輸入調度原因');
+				return false;
+			}
+			
+			return true;
 		}
     </script>
 </body>
