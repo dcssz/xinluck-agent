@@ -251,7 +251,7 @@ class Admin extends AdminBase
 		$username = $post['luserid'];
 		$password = $post['lpassword'];
 		$password = crypt($password, '$1$' . substr(md5($username), 5, 8));
-		if(strlen($username) < 5 || strlen($username) > 20){
+		if(strlen($username) < 4 || strlen($username) > 20){
 			return $response->withRedirect('/agent/login');
 		}
 		$where = array();
