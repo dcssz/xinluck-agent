@@ -252,7 +252,7 @@ $(function(){
     
 </li>
 <?php if ($_SESSION['isChild'] == 0) { ?>
-<li class="nav-item ">
+<li class="nav-item  hide">
     <a href="javascript:void(0);" class="nav-link nav-toggle" title_name="銀行卡" onclick="show_page(this, 'cus_bank_info', '/agent/cus_bank_info')">
         <i class=""></i>
         <span class="title">銀行卡</span>
@@ -262,7 +262,7 @@ $(function(){
     
 </li>
 <!--slot=1-->
-<li class="nav-item ">
+<li class="nav-item  hide">
     <a href="javascript:void(0);" class="nav-link nav-toggle" title_name="取款申請" onclick="show_page(this, 'cus_withdraw', '/agent/cus_withdraw')">
         <i class=""></i>
         <span class="title">取款申請</span>
@@ -284,7 +284,7 @@ $(function(){
 </li>
 <!--slot=1-->
 <?php if ($_SESSION['isChild'] == 0) { ?>
-<li class="nav-item ">
+<li class="nav-item  hide">
     <a href="javascript:void(0);" class="nav-link nav-toggle" title_name="資金明細" onclick="show_page(this, 'self_quota_log_manager', '/agent/self_quota_log_manager')">
         <i class=""></i>
         <span class="title">資金明細</span>
