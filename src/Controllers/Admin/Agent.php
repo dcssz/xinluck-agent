@@ -23,6 +23,7 @@ use App\Models\UserMoney as UserMneyModel;
 use App\Models\Period;
 use App\Models\UserLog;
 use App\Models\Config;
+use App\Models\UserGroup;
 
 class Agent extends AdminBase
 {
@@ -77,23 +78,17 @@ class Agent extends AdminBase
 		if(isset($get['limit']))
 			$limit = intval($get['limit']);
 		
-		if ($edit_cus_level == 14) { //总代理
-			$where[] = array('role', 'topagent');
-			
-		} else { //代理
-			$pid = isset($get['top_cus_id']) ? $get['top_cus_id'] : $_SESSION['id'];
-			$where[] = array('role', 'agent');
-			$where[] = array('parents', 'like','%/'.$pid.'/%');
-			// $where[] = array('pid', $pid);
-		}
-		
-
 		if ($get['search_customer_userid'] != '') {
+			$where[] = array('parents', 'like', '%/'.$_SESSION['id'].'/%');
 			if (isset($get['fuzzy_search']) && $get['fuzzy_search'] == 1) {
 				$where[] = array('username', 'like', "%" . $get['search_customer_userid'] . "%");
 			} else {
 				$where[] = array('username', $get['search_customer_userid']);
 			}
+		} else {
+			$pid = isset($get['top_cus_id']) ? $get['top_cus_id'] : $_SESSION['id'];
+			$where[] = array('role', 'agent');
+			$where[] = array('pid', $pid);
 		}
 
 		if ($get['search_status'] != -1) {
@@ -122,26 +117,31 @@ class Agent extends AdminBase
 		
 		$datas = UserModel::with('commissionRule', 'extraCommissionRule', 'retreatRule')->where($where)->offset($offset)->take($limit)->get();
 		$min = collect($datas)->min('level');
-		
+
 		$frontUrl = Config::where('name','frontUrl')->pluck('value')->first();
+		$frontUrl .= '/register';
+
 		$result = array();
 	 
 		foreach($datas as $data){
 			if ($data->level == $min) {
 				$data->pid = 0;
 			}
+			$data->username = $data->username . "<br />(" . $data->nickname . ")";
 
-			$data->commissionRule = $data->commissionRule ? $data->commissionRule->name : "";
-			$data->retreatRule = $data->retreatRule ? $data->retreatRule->name : "";
-
+			$child_agent_count = UserModel::where('role', 'agent')->where('parents', 'like', '%/'.$data->id.'/%')->where('level', $data->level +1)->count();
+			$data->child_agent_count = "<a href=\"/agent/agent_info_manager?edit_cus_level=15&search_customer_userid={$data->username}&search_level=14&top_cus_id={$data->id}&edit_station_code=3&is_back=1&search_role=-1\">{$child_agent_count}</a>";
 			$child_member_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
 			$data->child_member_count = "<a href=\"/agent/customer_info?edit_cus_level=16&search_customer_userid={$data->username}&search_level=15&top_cus_id={$data->id}&edit_station_code=3&is_back=1\">{$child_member_count}</a>";
-			$data->invite_code_url =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
-
+			//$data->invite_code_url =  "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
+			$data->invite_code_url = '';
 			$action = "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"><i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"javascript:void(0);\" onclick=\"show({$data->id});\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 調額 </a>\n\t\t\t\t\t\t\t\t";
-
+			
+			if ($_SESSION['isChild'] == 0) {
+				$action .= "<a href=\"/agent/agent_info_editor?etype=edit&edit_cus_id={$data->id}&edit_cus_level=15\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+				$action .= "<a href=\"javascript:void(0);\" onclick=\"show({$data->id});\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 調額 </a>\n\t\t\t\t\t\t\t\t";
+			}
+			$action .= "<a href=\"cus_info_log_list?user_id={$data->id}&is_back=1\"  class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>\n\t\t\t\t\t\t\t\t";
 			$data->action = $action;
 			//  $this->buildTreeAgent(0,$data,$result,$frontUrl);
 		}
@@ -278,6 +278,8 @@ class Agent extends AdminBase
 		$datas = UserModel::with('commissionRule', 'extraCommissionRule', 'retreatRule')->where($where)->skip($start)->take($length)->get();
 		
 		$frontUrl = Config::where('name','frontUrl')->pluck('value')->first();
+		$frontUrl .= '/register';
+
 		$result = array();
 		if ($edit_cus_level == 14) { //总代理
 			foreach($datas as $data){
@@ -383,9 +385,15 @@ class Agent extends AdminBase
 		$get = $request->getQueryParams();
 		$etype = $get['etype'];
 		$edit_level = $get['edit_cus_level'];
-		
+		$btn_type = isset($get['btn_type']) ? $get['btn_type']:'basic-info-area';
+
+		$top_agents = array();
 		$GameStoreTypes = array();
 		$user_open_game_ids = array();
+		$retreatRuleArray = array();
+		$parentRetreatRuleArray = array();
+		$extraCommissionRuleArray = array();
+		$parentExtraCommissionRuleArray = array();
 		if ($etype == 'edit') {
 			//编辑
 			$agent = UserModel::find(intval($get['edit_cus_id']));
@@ -393,27 +401,124 @@ class Agent extends AdminBase
 			//开放游戏设定--------------------------------------
 			$GameStoreTypes = GameStoreTypeModel::with('games')->get();
 			$user_open_game_ids = $agent->games()->pluck('game_id')->toArray();
+
+			//parent退水設定 (整理成前台好用的)
+			$games = GameModel::get();
+			$parentRetreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $top_cus_id)->orderBy('init_date', 'desc')->first();
+			if ($parentRetreatRule) {
+				foreach ($games as $game) {
+					foreach ($parentRetreatRule['ruleDetailsGames'] as $item) {
+						if ($game->id == $item->game_id) {
+							$parentRetreatRuleArray[$game->id] = ['percent' => $item['percent']];
+						}
+					}
+				}
+			} else {
+				foreach ($games as $game) {
+					if ($top_cus_id == 0 || $top_cus_id == 1) {
+						//沒有上層或上層是管理員
+						$parentRetreatRuleArray[$game->id] = ['percent' => '-'];
+					} else {
+						$parentRetreatRuleArray[$game->id] = ['percent' => 0];
+					}
+					
+				}
+			}
+			//退水設定 (整理成前台好用的)
+			$games = GameModel::get();
+			$retreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $get['edit_cus_id'])->orderBy('init_date', 'desc')->first();
+			if ($retreatRule) {
+				foreach ($games as $game) {
+					foreach ($retreatRule['ruleDetailsGames'] as $item) {
+						if ($game->id == $item->game_id) {
+							$retreatRuleArray[$game->id] = ['percent' => $item['percent']];
+						}
+					}
+				}
+			} else {
+				foreach ($games as $game) {
+					if (isset($parentRetreatRuleArray[$game->id]['percent']) && $parentRetreatRuleArray[$game->id]['percent'] != '-') {
+						$retreatRuleArray[$game->id] = ['percent' => $parentRetreatRuleArray[$game->id]['percent']];
+					} else {
+						$retreatRuleArray[$game->id] = ['percent' => 0];
+					}
+				}
+			}
+
+			//parent佔成設定 (整理成前台好用的)
+			$games = GameModel::get();
+			$parentExtraCommissionRule = ExtraCommissionRuleModel::with('ruleDetailsGames')->where('user_id', $top_cus_id)->orderBy('init_date', 'desc')->first();
+			if ($parentExtraCommissionRule) {
+				foreach ($games as $game) {
+					foreach ($parentExtraCommissionRule['ruleDetailsGames'] as $item) {
+						if ($game->id == $item->game_id) {
+							$parentExtraCommissionRuleArray[$game->id] = ['percent' => $item['percent']];
+						}
+					}
+				}
+			} else {
+				foreach ($games as $game) {
+					if ($top_cus_id == 0 || $top_cus_id == 1) {
+						//沒有上層或上層是管理員
+						$parentExtraCommissionRuleArray[$game->id] = ['percent' => '-'];
+					} else {
+						$parentExtraCommissionRuleArray[$game->id] = ['percent' => 0];
+					}
+					
+				}
+			}
+			//佔成設定 (整理成前台好用的)
+			$games = GameModel::get();
+			$extraCommissionRule = ExtraCommissionRuleModel::with('ruleDetailsGames')->where('user_id', $get['edit_cus_id'])->orderBy('init_date', 'desc')->first();
+			if ($extraCommissionRule) {
+				foreach ($games as $game) {
+					foreach ($extraCommissionRule['ruleDetailsGames'] as $item) {
+						if ($game->id == $item->game_id) {
+							$extraCommissionRuleArray[$game->id] = ['percent' => $item['percent']];
+						}
+					}
+				}
+			} else {
+				foreach ($games as $game) {
+					$extraCommissionRuleArray[$game->id] = ['percent' => 0];
+				}
+			}
 		} else {
 			//新增
 			$agent = new UserModel;
 			$top_cus_id = isset($get['top_cus_id']) ? $get['top_cus_id'] : $_SESSION['id'];
+			$top_agents = UserModel::where('id', $top_cus_id)->get();
 		}
 		
 		$commissionRules = CommissionRuleModel::all();
-		$retreatRules = RetreatRuleModel::all();
-		$extraCommissionRules = ExtraCommissionRuleModel::all();
+
+		//可用真人限紅組 從上層來判斷
+		$parent = UserModel::find($top_cus_id);
+		if ($parent->role == 'topagent') {
+			$userGroups = UserGroup::all();
+		} else {
+			$user_group_ids = explode(',', $parent->user_group_id);
+			$userGroups = UserGroup::whereIn('id', $user_group_ids)->get();
+		}
+		//真人限紅組轉為陣列
+		$agent->user_group_id = explode(',', $agent->user_group_id ?? '');
 
         return $this->view->render('agent_info_editor', [
+			'btn_type'=>$btn_type,
 			'agent'=>$agent,
 			'etype'=>$etype,
 			'edit_level'=>$edit_level,
 			'title'=>'editor',
 			"commissionRules" => $commissionRules,
-			"retreatRules" => $retreatRules,
-			"extraCommissionRules" => $extraCommissionRules,
 			"top_cus_id" => $top_cus_id,
+			"top_agents" => $top_agents,
 			"GameStoreTypes" => $GameStoreTypes,
 			"user_open_game_ids" => $user_open_game_ids,
+			"userGroups" => $userGroups,
+			"parentRetreatRuleArray" => $parentRetreatRuleArray,
+			"retreatRuleArray" => $retreatRuleArray,
+			"parentExtraCommissionRuleArray" => $parentExtraCommissionRuleArray,
+			"extraCommissionRuleArray" => $extraCommissionRuleArray,
 		]);
 	}
 
@@ -426,6 +531,7 @@ class Agent extends AdminBase
 		$save_type = $post['save_type'];
 		
 		if ($save_type == 'basic-info') {
+			$editInfo = '';
 		
 			if($etype == 'edit'){
 				$agent = UserModel::find($id);
@@ -439,6 +545,7 @@ class Agent extends AdminBase
 						return $response->withJson($msg);
 					}
 					$agent->password = crypt($post['customer_pass1'], '$1$' . substr(md5($agent->username), 5, 8));
+					$editInfo .= _('修改密碼').'<br>';
 				}
 			} else {
 				$agent = new UserModel;
@@ -489,14 +596,44 @@ class Agent extends AdminBase
 				return $response->withJson($msg);
 			}
 			
+			if($agent->nickname != $post['customer_name'])$editInfo .= _('修改昵稱').'<br>';
 			$agent->nickname = $post['customer_name'];
+
+			if($agent->valid != $post['customer_status']){
+				if($post['customer_status'] == '1')
+					$editInfo .= _('狀態:啟用').'<br>';
+				elseif($post['customer_status'] == '2')
+					$editInfo .= _('狀態:停押').'<br>';
+				elseif($post['customer_status'] == '3')
+					$editInfo .= _('狀態:鎖定').'<br>';
+				elseif($post['customer_status'] == '4')
+					$editInfo .= _('狀態:停用').'<br>';
+			}
 			$agent->valid = $post['customer_status'];
-			$agent->has_control_perm = $post['has_control_perm'];
-			$agent->commission_rule_id = $post['commission_rule_id'];
-			$agent->retreat_rule_id = $post['retreat_rule_id'];
-			$agent->extra_commission_rule_id = $post['extra_commission_rule_id'];
-			$agent->fee_percent = $post['fee_percent'];
+			/*$agent->has_control_perm = $post['has_control_perm'];*/
+			
+			//$agent->fee_percent = $post['fee_percent'];
+			if($agent->note != $post['notes'])$editInfo .= _('修改備註').':'.$post['notes'].'<br>';
 			$agent->note = $post['notes'];
+
+			if ($post['edit_cus_level'] == 15) {
+				/*if (count($post['user_group_id']) == 0) {
+					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\'請勾選真人限紅組\');page_content_mask_hide();"}]}}');
+					return $response->withJson($msg);
+				}*/
+				
+				//$user_group_id = implode(',', $post['user_group_id']);    // 轉成 "1,2,3" 這種格式
+
+				//if($agent->user_group_id != $user_group_id) $editInfo .= _('真人限紅組').':'.$user_group_id.'<br>';
+				//$agent->user_group_id = $user_group_id;
+
+				if ($post['memberCount'] < 0) {
+					$post['memberCount'] = 0;
+				}
+
+				if($agent->memberCount != $post['memberCount'])$editInfo .= _('會員人數上限').':'.$post['memberCount'].'<br>';
+				$agent->memberCount = $post['memberCount'];
+			}
 			
 			$agent->save();
 			if ($etype == 'add') {
@@ -504,12 +641,19 @@ class Agent extends AdminBase
 				$agent->save();
 				$agent->games()->sync(GameModel::pluck('id')->all());
 
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+				//跳轉退水設定頁面
+				$result = [];
+				$result['root']['ajaxdata'][] = [
+					'spanid' => 'javascript',
+					'rtntext' => 'location.href = "/agent/agent_info_editor?etype=edit&edit_cus_level='.$post['edit_cus_level'].'&edit_cus_id='.$agent->id. '&btn_type=retreat-info-area' .'";page_content_mask_hide();',
+				];
+				return $response->withJson($result);
+				//$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			} else {
-				
-				$userLog = new UserLog;
-				$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],'修改資料');
-				
+				if ($editInfo) {
+					$userLog = new UserLog;
+					$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],$editInfo);
+				}
 				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			}
 			return $response->withJson($msg);
@@ -523,6 +667,151 @@ class Agent extends AdminBase
 
 			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			return $response->withJson($msg);
+		} elseif ($save_type == 'retreat-info') {
+			//取得下個周日的日期
+			$init_date = Functions::getNextSundayDate();
+
+			//退水设定
+			$retreat_game_arr = $post['retreat_game_arr'];
+
+			//檢查有沒有超過上層
+			$agent = UserModel::find($id);
+			$checkResult = $agent->checkRetreatRuleNotExceedParent($retreat_game_arr);
+		
+			if (!$checkResult['success']) {
+				$msgText = $checkResult['message'];
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\'' . $msgText . '\', {\"target\":\"kangAgentInfoEditor\"});page_content_mask_hide();"}]}}');
+				return $response->withJson($msg);
+			}
+
+			//佔成设定
+			$extra_commission_game_arr = $post['extra_commission_game_arr'];
+
+			//檢查有沒有超過上層
+			$agent = UserModel::find($id);
+			$checkResult = $agent->checkExtraCommissionRuleNotExceedParent($extra_commission_game_arr);
+			
+			if (!$checkResult['success']) {
+				$msgText = $checkResult['message'];
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\'' . $msgText . '\', {\"target\":\"kangAgentInfoEditor\"});page_content_mask_hide();"}]}}');
+				return $response->withJson($msg);
+			}
+
+
+			////////////////////////////////////////////////////////////////////////////////////////////
+
+			$hasRetreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $id)->count();
+			if ($hasRetreatRule == 0) {
+				//首次新增
+				$data = new RetreatRuleModel;
+				$data->user_id = $id;
+				$data->init_date = null;
+				$data->operator = $_SESSION['username'];
+				$data->save();
+			} else {
+				//後續修改 
+				$retreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $id)->where('init_date', $init_date)->first();
+				if ($retreatRule == null) {
+					$data = new RetreatRuleModel;
+					$data->user_id = $id;
+					$data->init_date = $init_date;
+				} else {
+					$data = $retreatRule;
+					//先清除旧数据
+					$details = RetreatRuleDetailModel::where('retreat_rule_id', $data->id)->get();
+					if ($details) {
+						foreach ($details as $item) {
+							$item->games()->detach();
+							$item->delete();
+						}
+					}
+				}
+				$data->operator = $_SESSION['username'];
+				$data->save();
+			}
+			//新設計用不到 直接設0
+			$detail = new RetreatRuleDetailModel();
+			$detail->retreat_rule_id = $data->id;
+			$detail->lower_limit = 0;
+			$detail->upper_limit = 0;
+			$detail->effect_cus_num = 0;
+			$detail->save();
+			
+			$editInfo = '退水值:<br>';
+			foreach ($retreat_game_arr as $game_id => $number) {
+				if (!$number) {
+					$number = 0;
+				}
+				$detail->games()->attach($game_id, ['percent' => $number]);
+
+				$game = GameModel::find($game_id);
+				$editInfo .= $game->name .':' . $number .'<br>';
+			}
+			$userLog = new UserLog;
+			$userLog->saveLog($id,1,'設定退水',$_SESSION['username'],$editInfo);
+
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			//佔成设定
+
+			$hasExtraCommissionRule = ExtraCommissionRuleModel::with('ruleDetailsGames')->where('user_id', $id)->count();
+			if ($hasExtraCommissionRule == 0) {
+				//首次新增
+				$data = new ExtraCommissionRuleModel;
+				$data->user_id = $id;
+				$data->init_date = null;
+				$data->operator = $_SESSION['username'];
+				$data->save();
+			} else {
+				//後續修改 
+				$extraCommissionRule = ExtraCommissionRuleModel::with('ruleDetailsGames')->where('user_id', $id)->where('init_date', $init_date)->first();
+				if ($extraCommissionRule == null) {
+					$data = new ExtraCommissionRuleModel;
+					$data->user_id = $id;
+					$data->init_date = $init_date;
+				} else {
+					$data = $extraCommissionRule;
+					//先清除旧数据
+					$details = ExtraCommissionRuleDetailModel::where('extra_commission_rule_id', $data->id)->get();
+					if ($details) {
+						foreach ($details as $item) {
+							$item->games()->detach();
+							$item->delete();
+						}
+					}
+				}
+				$data->operator = $_SESSION['username'];
+				$data->save();
+			}
+			//新設計用不到 直接設0
+			$detail = new ExtraCommissionRuleDetailModel();
+			$detail->extra_commission_rule_id = $data->id;
+			$detail->lower_limit = 0;
+			$detail->upper_limit = 0;
+			$detail->save();
+			
+			$editInfo = '設定佔成值:<br>';
+			foreach ($extra_commission_game_arr as $game_id => $number) {
+				if (!$number) {
+					$number = 0;
+				}
+				$detail->games()->attach($game_id, ['percent' => $number]);
+
+				$game = GameModel::find($game_id);
+				$editInfo .= $game->name .':' . $number .'<br>';
+			}
+			$userLog = new UserLog;
+			$userLog->saveLog($id,1,'設定佔成',$_SESSION['username'],$editInfo);
+			
+			if ($hasExtraCommissionRule == 0) {
+				//首次新增
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+				return $response->withJson($msg);
+			} else {
+				//後續修改
+				$msgText = '儲存成功'.$init_date .' 12:00開始生效';
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\'' . $msgText . '\', {\"target\":\"kangAgentInfoEditor\"});page_content_mask_hide();"}]}}');
+				return $response->withJson($msg);
+			}
 		}
 	}
 
@@ -778,7 +1067,7 @@ class Agent extends AdminBase
 
 	public function retreatRuleManager($request, $response)
     {
-		$gameStoreTypes = GameStoreTypeModel::with('gameStores.games')->get();
+		$gameStoreTypes = GameStoreTypeModel::with('games.gameStores')->get();
 		$effectCusRules = EffectCusRuleModel::all();
 		
         return $this->view->render('retreat_rule_manager', [
@@ -799,7 +1088,7 @@ class Agent extends AdminBase
 		$length = 0;
 		if(isset($get['length']))
 			$length = intval($get['length']);
-		
+		$where[] = array('user_id', $_SESSION['id']);
 		$datas = RetreatRuleModel::with('effectCusRule')->where($where)->skip($start)->take($length)->get();
 		$result = array();
 		foreach($datas as $data){
@@ -846,7 +1135,7 @@ class Agent extends AdminBase
 		$id = $post['edit_retreat_rule_id'];
 
 		
-		$data = RetreatRuleModel::with('RetreatRuleDetails.gameStores', 'effectCusRule', 'gameStores')->where('id', $id)->first();
+		$data = RetreatRuleModel::with('RetreatRuleDetails.games', 'effectCusRule', 'games')->where('id', $id)->first();
 
 		return $response->withJson($data);
 	}
@@ -871,33 +1160,35 @@ class Agent extends AdminBase
 			} else {
 				$data = RetreatRuleModel::find($id);
 				//先清除旧数据
-				$data->gameStores()->detach();
+				$data->games()->detach();
 				$details = RetreatRuleDetailModel::where('retreat_rule_id', $data->id)->get();
 				if ($details) {
 					foreach ($details as $item) {
-						$item->gameStores()->detach();
+						$item->games()->detach();
 						$item->delete();
 					}
 				}
 				
 
 			}
-
+			$data->user_id = $_SESSION['id'];
 			$data->name = $post['retreat_rule_name'];
 			if (isset($post['status'])) {
 				$data->status = $post['status'];
 			} else {
 				$data->status = 0;
 			}
-			$data->effect_cus_rule_id = $post['effect_cus_rule_id'];
+			//$data->effect_cus_rule_id = $post['effect_cus_rule_id'];
 			$data->operator = $_SESSION['username'];
 			$data->save();
 
 			//無需被計算區間(
-			foreach ($retreat_condition['is_not_calc'] as $key => $check) {
-				$data->gameStores()->attach($key);
+			if (isset($retreat_condition['is_not_calc'])) {
+				foreach ($retreat_condition['is_not_calc'] as $key => $check) {
+					$data->games()->attach($key);
+				}	
 			}
-
+			
 			foreach ($retreat_condition as $key => $condition) {
 				if ($key == 'is_not_calc') {
 					continue;
@@ -914,7 +1205,7 @@ class Agent extends AdminBase
 					if (strpos($key,'retreat') !== false ) {
 						$store_id = explode('_', $key);
 						$store_id = $store_id[0];
-						$detail->gameStores()->attach($store_id, ['percent' => $number]);
+						$detail->games()->attach($store_id, ['percent' => $number]);
 					}
 				}
 				
@@ -922,6 +1213,7 @@ class Agent extends AdminBase
 			DB::commit();
 		} catch (\Exception $ex) {
 			DB::rollBack();
+			echo $ex->getMessage();
 			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"close_layer({type: 1});pop_msg(show_msg(\'1\', {\"target\":\"kangRetreatRule\"}));grid.getDataTable().ajax.reload();"}]}}');
 			return $response->withJson($msg);
         }
@@ -935,7 +1227,7 @@ class Agent extends AdminBase
 
 	public function extraCommissionRuleManager($request, $response)
     {
-		$gameStoreTypes = GameStoreTypeModel::with('gameStores.games')->get();
+		$gameStoreTypes = GameStoreTypeModel::with('games.gameStores')->get();
 		
         return $this->view->render('extra_commission_rule_manager', [
 			"gameStoreTypes" => $gameStoreTypes,
@@ -955,6 +1247,7 @@ class Agent extends AdminBase
 		if(isset($get['length']))
 			$length = intval($get['length']);
 		
+		$where[] = array('user_id', $_SESSION['id']);	
 		$datas = ExtraCommissionRuleModel::where($where)->skip($start)->take($length)->get();
 		$result = array();
 		foreach($datas as $data){
@@ -995,7 +1288,7 @@ class Agent extends AdminBase
 		$id = $post['edit_extra_commission_rule_id'];
 
 		
-		$data = ExtraCommissionRuleModel::with('extraCommissionRuleDetails.gameStores')->where('id', $id)->first();
+		$data = ExtraCommissionRuleModel::with('extraCommissionRuleDetails.games')->where('id', $id)->first();
 
 		return $response->withJson($data);
 	}
@@ -1023,7 +1316,7 @@ class Agent extends AdminBase
 				$details = ExtraCommissionRuleDetailModel::where('extra_commission_rule_id', $data->id)->get();
 				if ($details) {
 					foreach ($details as $item) {
-						$item->gameStores()->detach();
+						$item->games()->detach();
 						$item->delete();
 					}
 				}
@@ -1031,6 +1324,7 @@ class Agent extends AdminBase
 
 			}
 
+			$data->user_id = $_SESSION['id'];
 			$data->name = $post['extra_commission_rule_name'];
 			if (isset($post['status'])) {
 				$data->status = $post['status'];
@@ -1051,7 +1345,7 @@ class Agent extends AdminBase
 					if (strpos($key,'extra_commission') !== false ) {
 						$store_id = explode('_', $key);
 						$store_id = $store_id[0];
-						$detail->gameStores()->attach($store_id, ['percent' => $number]);
+						$detail->games()->attach($store_id, ['percent' => $number]);
 					}
 				}
 				

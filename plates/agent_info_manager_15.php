@@ -210,7 +210,9 @@
                         <?=$user->username != $agent->username ? $user->username . ' ' : ''?>代理設定
                     </span>
                 </div>
+                <?php if ($_SESSION['isChild'] == 0) { ?>
                 <button class="btn red add-agent-btn" onclick="add_agent()">新增</button>
+                <?php } ?>
             </div>
 
             <div class="portlet-body">
@@ -223,13 +225,11 @@
                                     <th>代理帳號</th>
                                     <!--th>上層總代</th-->
                                     <th>狀態</th>
-                                    <th>佣金規則</th>
-                                    <th>退水規則</th>
+                                    <th>下線代理數</th>
                                     <th>下線會員數</th>
 
                                     <th>帳戶餘額</th>
                                     <th width="1px">建立時間</th>
-                                    <th width="1px">邀請碼/推廣連結</th>
                                     <th>功能</th>
                                 </tr>
                             </thead>
@@ -366,7 +366,7 @@
                 pagination: true,
                 pageList: [10, 20, 50, 100],
                 pageNumber: 1,
-                pageSize: 10,
+                pageSize: 100,
                 sidePagination: 'server',
                 smartDisplay: false,
 				columns: [
@@ -378,7 +378,7 @@
 					{
 						field: 'username',
 						title: '代理帳號',
-                        formatter: 'usernameFormatter'
+                        // formatter: 'usernameFormatter'
 					},
 					{
 						field: 'valid',
@@ -388,13 +388,8 @@
 						formatter: 'statusFormatter'
 					},
 					{
-						field: 'commissionRule',
-						title: '佣金規則',
-						align: 'center',
-					},
-					{
-						field: 'retreatRule',
-						title: '退水規則',
+						field: 'child_agent_count',
+						title: '下線代理數',
 						align: 'center',
 					},
 					{
@@ -413,38 +408,34 @@
 						align: 'center',
 					},
 					{
-						field: 'invite_code_url',
-						title: '邀請碼/推廣連結',
-						align: 'center',
-					},
-					{
 						field: 'action',
 						title: '功能',
 						align: 'center',
 					},
 				],
-				treeShowField: 'username',
-				parentIdField: 'pid',
+				// treeShowField: 'username',
+				// parentIdField: 'pid',
                 queryParams:function (params) {
                     return params;
                 },
 				responseHandler:function (res) {
+                    console.log(res.data);
 					return { 
                         "total": res.recordsTotal,
                         "rows": res.data
                     }
 				},
 				onPostBody: function() {
-					var columns = $table.bootstrapTable('getOptions').columns
+					// var columns = $table.bootstrapTable('getOptions').columns
 
-					if (columns && columns[0][1].visible) {
-						$table.treegrid({
-						treeColumn: 0,
-						onChange: function() {
-							$table.bootstrapTable('resetView');
-						}
-						})
-					}
+					// if (columns && columns[0][1].visible) {
+					// 	$table.treegrid({
+					// 	treeColumn: 0,
+					// 	onChange: function() {
+					// 		$table.bootstrapTable('resetView');
+					// 	}
+					// 	})
+					// }
 				}
 			})
 		});
@@ -574,7 +565,7 @@
 						layer.msg('資金調度成功');
 						layer.close(index);
 						// 可能需要重新整理表格數據
-						// reloadTable();
+						$table.bootstrapTable('refresh');
 					} else {
 						layer.msg('資金調度失敗：' + response.message);
 					}

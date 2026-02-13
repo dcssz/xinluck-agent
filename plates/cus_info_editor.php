@@ -247,6 +247,23 @@ label{
       border: 1px solid #eee;
       padding: 5px;
     }
+
+.retreat-setting-table{
+	width: 100%;
+}
+.retreat-setting-table th{
+	background-color: #39a8a9;
+	color: #FFF;
+}
+.retreat-setting-table th, .retreat-setting-table td{
+	border: 1px solid #ccc;
+	text-align: center;
+	padding: 10px 0px;
+  width: 33%;
+}
+.retreat-setting-table .notice-txt{
+	color: red;
+}
 </style>
 <div class="page-bar">
 	<div class="act-group" id="top-save-btn-area">
@@ -263,9 +280,10 @@ label{
               <button class="type-btn1 <?=$btn_type=='basic-info-area'?'active':''?>" type="button" onClick="show_data_content(this, 'basic-info-area');">詳細資料</button>
             <?php } else { ?>
               <button class="type-btn1 <?=$btn_type=='basic-info-area'?'active':''?>" type="button" onClick="show_data_content(this, 'basic-info-area');">詳細資料</button>
-              <button class="type-btn1 <?=$btn_type=='wallet-info-area'?'active':''?>" type="button" btn-type="wallet-info-area" onClick="reload_quota();show_data_content(this, 'wallet-info-area');">第三方帳號及錢包餘額</button>
+              <!--button class="type-btn1 <?=$btn_type=='wallet-info-area'?'active':''?>" type="button" btn-type="wallet-info-area" onClick="reload_quota();show_data_content(this, 'wallet-info-area');">第三方帳號及錢包餘額</button-->
               <!--button class="type-btn1 <?=$btn_type=='bank-info-area'?'active':''?>" type="button" onclick="show_data_content(this, 'bank-info-area');">銀行信息</button-->
               <button class="type-btn1 " type="button" onClick="show_data_content(this, 'open-game-info-area');">開放遊戲設定</button>
+              <button class="type-btn1 <?=$btn_type=='retreat-info-area'?'active':''?>" type="button" onClick="show_data_content(this, 'retreat-info-area');" type="button" onClick="show_data_content(this, 'retreat-info-area');">退水設定</button>
               <!--button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group1-area');">體育設定</button>
               <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group2-area');">彩票設定</button>
               <button class="type-btn1  " type="button" onclick="show_data_content(this, 'gstore-group3-area');">真人設定</button>
@@ -279,7 +297,7 @@ label{
 <div id="page-content-mask"><img class="temp-waiting" src="/templates/images/loading.svg"></div>
 <div id="basic-info-area" class="data-content <?=$btn_type=='basic-info-area'?'':'hidden'?>">
     <!--slot=1-->
-  <div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('basic-info')">儲存基本資料</button></div>
+  <div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('basic-info')"><?= $etype == 'add' ? '下一步': '儲存基本資料'?></button></div>
   <form>
       <div class="portlet light bordered">
         <div class="portlet-body" >
@@ -315,6 +333,27 @@ label{
                 <td class="title">會員名稱</td>
                 <td><input type="text" size="12" name ="customer_name" value="<?=e($user->nickname)?>"></td>
               </tr>
+              <!--tr>
+                <td class="title">真人限紅組</td>
+                <td>
+                  <div>
+                <select name="user_group_id" class="form-control input-inline">
+                          <?php foreach ($userGroups as $item) {?>
+                              <option value="<?= $item->id ?>" <?= $user->user_group_id == $item->id ? 'selected': ''?>> <?= $item->content?></option>
+                          <?php }?>
+
+                </select>
+                  </div>
+                </td>
+              </tr>
+              <tr>             
+                <td class="title">真人餘額上限</td>
+                <td ><input name="live_balance_max" type="text" value="<?=$user->live_balance_max?>" >&nbsp;<font class="color-red1">(0為不限制)</font></td>
+              </tr>
+              <tr>             
+                <td class="title">電子餘額上限</td>
+                <td ><input name="slot_balance_max" type="text" value="<?=$user->slot_balance_max?>" >&nbsp;<font class="color-red1">(0為不限制)</font></td>
+              </tr-->
             <tr>
                 <td class="title">標籤設定</td>
                 <td>
@@ -355,10 +394,10 @@ label{
                 <td class="title">生日</td>
                 <td><input type="text" size="12" name ="birthday" value="<?=e($user->birthday)?>">&nbsp;<font class="color-red1">(生日格式為YYYY-MM-DD，例：1911-01-01)</font></td>
               </tr>
-            <tr>
+            <!--tr>
                 <td class="title">手機</td>
                 <td><input type="text" size="12" name ="cell_phone" value="<?=e($user->mobile)?>"></td>
-              </tr>
+              </tr-->
             <tr>
                 <td class="title">信箱</td>
                 <td><input type="text" size="12" name ="email" value="<?=e($user->email)?>"></td>
@@ -876,6 +915,42 @@ label{
         </div>
     </form>
 </div>
+<div id="retreat-info-area" class="data-content  <?=$btn_type=='retreat-info-area'?'':'hidden'?>">
+  <div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('retreat-info')">儲存退水設定</button></div>
+  <form>
+    <table class="retreat-setting-table">
+         <tr>
+					<th>遊戲廠商</th>
+					<th>退水設定(%)</th>
+					<th>最大值(%)</th>
+				</tr>
+        <tr>
+					<td></td>
+					<td>
+            真人退水:<input type="input" id="live_quick" name="live_quick"  style="width: 15%;">
+            <br>
+            <br>
+            電子退水:<input type="input" id="slot_quick" name="slot_quick"  style="width: 15%;">
+          </td>
+					<td></td>
+				</tr>
+      <?php foreach ($GameStoreTypes as $type) {?>
+        <?php foreach ($type->games as $game) {?>
+          <tr>
+            <td><?= $game->name ?></td>
+            <td>
+              <input type="input" max="<?= $parentRetreatRuleArray[$game->id]['percent'] ?>" <?= $type->type=='slot' ?'class="slot"':'' ?> <?= $type->type=='live' ?'class="live"':'' ?> name="retreat_game_arr[<?= $game->id ?>]" value="<?= $retreatRuleArray[$game->id]['percent'] ?>" style="width: 30%;">
+            </td>
+            <td>
+              <span><?= $parentRetreatRuleArray[$game->id]['percent'] ?></span>
+            </td>
+          </tr>   
+        <?php } ?>
+      <?php } ?>
+      
+    </table>
+  </form>
+</div>
 <div id="gstore-group1-area" class="data-content hidden">
     <div id="no-data"></div>
 </div>
@@ -941,6 +1016,41 @@ $(function() {
         <script src="/templates/js/jquery.wallform.js?c=1" type="text/javascript"></script>
         <script src="/templates/js/bank.js?c=100" type="text/javascript"></script>
         <script src="/templates/js/cus_info/editor.js?cache=161" type="text/javascript"></script>
+        <script>
+          $(function(){
+            $('#live_quick').on('input', function() {
+              let newValue = $(this).val();
+              $('.live').each(function() {
+                let max = $(this).attr('max');   // 讀取每個輸入框的 max 屬性
+                let val = newValue;
+                if (max !== '-' && Number(val) > Number(max)) {
+                  val = max; // 超過最大值就改成最大值
+                }
+                $(this).val(val);
+              });
+            });
+            $('#slot_quick').on('input', function() {
+              let newValue = $(this).val();
+              $('.slot').each(function() {
+                let max = $(this).attr('max');   // 讀取每個輸入框的 max 屬性
+                let val = newValue;
+                if (max !== '-' && Number(val) > Number(max)) {
+                  val = max; // 超過最大值就改成最大值
+                }
+                $(this).val(val);
+              });
+            });
+            //改變上方儲存按鈕
+            change_save_btn_area('<?=$btn_type?>');
+          });
 
+          /*function copyText() {
+            let text = '會員網址：\nhttps://richpanda.vip/\n會員\n名稱：WW9368bm1\n帳號：WW9368bm1\n密碼：aaaa8888';
+            navigator.clipboard.writeText(text).then(() => {
+              alert('已複製');
+            });
+
+          }*/
+        </script>
     </body>
 </html>

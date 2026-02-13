@@ -104,6 +104,7 @@ return [
 			['/agent/agent_quota_log_op', $allRoles, ['get','post']],
 			['/agent/all_calc_report_manager', $allRoles, ['get']],
 			['/agent/all_calc_agent_report_manager', $allRoles, ['get']],
+			['/agent/all_calc_agent_report_manager_v2', $allRoles, ['get']],
 			['/agent/game_report_manager', $allRoles, ['get']],
 			['/agent/cus_instant_bet_info_manager', $allRoles, ['get']],
 			['/agent/cus_bet_info_manager', $allRoles, ['get']],

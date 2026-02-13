@@ -84,7 +84,6 @@ td
 			<select name="search_date_type">
 				<option value="1" <?= $search_date_type == '1' ? "selected=true" : ''?>>投注日期</option>
 				<option value="2" <?= $search_date_type == '2' ? "selected=true" : ''?>>結算日期</option>
-				<option value="3" <?= $search_date_type == '3' ? "selected=true" : ''?>>生效日期</option>
 			</select>
 		</div>
 		<div class="act-group">
@@ -126,16 +125,13 @@ td
 			</div>
 		</div>
 		<div class="act-group">
-			<span>帳號層級</span>&nbsp;
-			<select name="search_level">
-				<option value="16" >會員</option>
-				<option value="15" >代理</option>
-				<option value="14" >總代</option>
+			<span>廠商名稱</span>&nbsp;
+			<select name="search_game_store" onChange="change_game_store();">
+				<option  value="" <?=isset($search_game_store) ? "selected=true" : ''?>> 全部</option>
+				<?php foreach ($games as $game): ?>
+					<option  value="<?=$game['id']?>" <?=$search_game_store == $game['id'] ? "selected=true" : ''?> ><?=$game['name']?></option>
+				<?php endforeach;?>
 			</select>
-		</div>
-		<div class="act-group">
-			<span>帳號</span>&nbsp;
-			<input type="text" size="8" name="search_customer_userid" value="">
 		</div>
 		<div class="act-group">
 			<button type="button" class="btn btn-success search-btn" value="search">
@@ -157,7 +153,7 @@ td
 			
 		</div>
 	</div>
-	<div class="game-ckbox-div">
+	<div class="game-ckbox-div" style="display:none;">
 		<span>遊戲類別</span>&nbsp;<a href="javascript:void(0);" onclick="toggle_div('game-ckbox-inner');">縮合</a>
 		<div id="game-ckbox-inner" class="game-ckbox-inner">
 			<div class="gstore-group-ckbox-div">
@@ -185,8 +181,7 @@ td
 						<th>總投注筆數</th>
 						<th>總投注金額</th>
 						<th>總有效投注</th>
-						<th>會員輸贏</th>
-						<th>殺率&nbsp;%</th>
+						<th>總輸贏</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -195,15 +190,21 @@ td
 					?> 
 					<tr>
 						<td><?=$bet->game->name?></td>
-						<td><a href="/admin/cus_bet_info_manager"><?=$bet->Cnt?></a></td>
+						<td><a href="/agent/cus_bet_info_manager?sddate=<?=$_GET['sddate']?>&search_game_store=<?=$bet->game_id?>"><?=$bet->Cnt?></a></td>
 						<td><?=$bet->totalAmount?></td>
 						<td><?=$bet->totalValidAmount?></td>
-						<td><?=$bet->totalWinlose?></td>
-						<td><?=$bet->killRate?>%</td>
+						<td><?=$bet->totalNetAmount?></td>
 					</tr>
 					<?php
 					}
 					?>
+					<tr> 
+						<td class="text-left" colspan="1">總計</td> 
+						<td class=""><?=$allTotal->Cnt?></td>
+						<td class=""><?=$allTotal->totalAmount?></td>
+						<td class=""><?=$allTotal->totalValidAmount?></td>
+						<td class=""><?=$allTotal->totalNetAmount?></td>
+					</tr>
 				</tbody>
 			 </table>
 		</div>
@@ -246,7 +247,7 @@ td
 		<script src="/templates/js/kang_common.js?cache=108"></script>
 		<script src="/templates/js/kang_all.js?cache=203"></script>
 		<script src="/templates/js/lang/tw.js?cache=203"></script>
-        <script src="/templates/js/game_report/manager.js?cache=125" type="text/javascript"></script>
+        <script src="/templates/js/game_report/manager.js?cache=126" type="text/javascript"></script>
 
     </body>
 </html>

@@ -510,6 +510,9 @@ class Admin extends AdminBase
 		//if(isset($get['search_customer_userid']))
 		//	$where[] = array('game_username','like','%'.$get['search_customer_userid'].'%');
 		$id = $_SESSION['id'];
+		if (isset($get['search_game_store']) && $get['search_game_store'] != '') {
+			$where[] = array('game_id', $get['search_game_store']);
+		}
 		$summarys = Bet::whereHas('user',function($query) use ($id){
 			$query->where('parents','like','%/'.$id.'/%');
 		})->with('game')->select(
@@ -518,23 +521,39 @@ class Admin extends AdminBase
 			DB::raw('count(id) as Cnt'),
 			DB::raw('SUM(Amount) as totalAmount'),
 			DB::raw('SUM(valid_Amount) as totalValidAmount'),
-			DB::raw('SUM(winlose) as totalWinlose')
+			DB::raw('SUM(netAmount) as totalNetAmount')
 		)->where($where)->groupBy('game_id')->get();
 		
 		 
 		foreach($summarys as $summary){
 			$summary->killRate = number_format(1 - $summary->loseCnt /   $summary->Cnt ,2) * 100;
 		}
+
+		//總計
+        $allTotal = new \stdClass;
+        $allTotal->Cnt = 0;
+        $allTotal->totalAmount = 0;
+        $allTotal->totalValidAmount = 0;
+        $allTotal->totalNetAmount = 0;
+		foreach ($summarys as $item) {
+            $allTotal->Cnt += $item['Cnt'];
+            $allTotal->totalAmount += $item['totalAmount'];
+            $allTotal->totalValidAmount += $item['totalValidAmount'];
+            $allTotal->totalNetAmount += $item['totalNetAmount'];
+        }
 		
 		//echo json_encode($summarys);
+		$games = Game::where('status', 1)->get();
         return $this->view->render('game_report_manager',[
 			'summarys'=>$summarys,
-			'search_date_type'=> isset($get['search_date_type']) ? $get['search_date_type'] : '1',
+			'search_date_type'=> isset($get['search_date_type']) ? $get['search_date_type'] : '2',
 			'search_game_store'=> isset($get['search_game_store']) ? $get['search_game_store'] : '-1',
 			'sddate'=>$sddate,
 			'eddate'=>$eddate,
 			'sdtime'=>$sdtime,
-			'edtime'=>$edtime
+			'edtime'=>$edtime,
+			'games' => $games,
+			'allTotal' => $allTotal,
 		]);
 	}
 

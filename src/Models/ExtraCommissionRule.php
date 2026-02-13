@@ -20,5 +20,10 @@ Class ExtraCommissionRule extends Model
     {
         return $this->hasMany('App\Models\ExtraCommissionRuleDetail');
     }
+
+    public function ruleDetailsGames()
+    {
+        return $this->hasManyThrough('App\Models\ExtraCommissionRuleDetailGame', 'App\Models\ExtraCommissionRuleDetail', 'extra_commission_rule_id', 'extra_commission_rule_detail_id');
+    }
 	
 }

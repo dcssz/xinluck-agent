@@ -16,8 +16,8 @@ Class RetreatRuleDetail extends Model
         return [];
     }
 
-    public function gameStores()
+    public function games()
     {
-        return $this->belongsToMany('App\Models\GameStore', 'retreat_rule_detail_game_store', 'retreat_rule_detail_id', 'game_store_id')->withPivot('percent');
+        return $this->belongsToMany('App\Models\Game', 'retreat_rule_detail_game', 'retreat_rule_detail_id', 'game_id')->withPivot('percent');
     }
 }

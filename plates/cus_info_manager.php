@@ -367,7 +367,9 @@
                     </span>
                     <span class="caption-subject bold uppercase mr-l-20 hidden">總會員數：</span>
                 </div>
+                <?php if ($_SESSION['isChild'] == 0) { ?>
                 <button class="btn red add-cus-btn" onclick="add_cus()">新增</button>
+                <?php } ?>
             </div>
 
             <div class="portlet-body">
@@ -533,14 +535,13 @@
                 pagination: true,
                 pageList: [10, 20, 50, 100],
                 pageNumber: 1,
-                pageSize: 10,
+                pageSize: 100,
                 sidePagination: 'server',
                 smartDisplay: false,
                 columns: [
                     {
                         field: 'id',
-                        title: 'id',
-                        visible:false
+                        title: 'uid',
                     },
                     {
                         field: 'username',
@@ -606,8 +607,8 @@
                         align: 'center',
                     },
                 ],
-                treeShowField: 'username',
-                parentIdField: 'pid',
+                //treeShowField: 'username',
+                //parentIdField: 'pid',
                 responseHandler:function (res) {
                     return { 
                         "total": res.recordsTotal,
@@ -668,11 +669,10 @@
 
 		function usernameFormatter(value, row, index) {
 			var result;
-
             if (row.role == 'agent') {
-                result = '<p class="text-success" style="display: contents; color: green;">(' + row.level + '代) </p>' + value;
+                result = '<p class="text-success" style="display: contents; color: green;">(' + row.nickname + ') </p>' + value;
             } else {
-                result = '<p class="text-success" style="display: contents; color: green;">(' + row.level + '會) </p>' + value;
+                result = '<p class="text-success" style="display: contents; color: green;">(' + row.nickname + ') </p>' + value;
             }
 
 			return result;
@@ -770,7 +770,7 @@
 						layer.msg('資金調度成功');
 						layer.close(index);
 						// 可能需要重新整理表格數據
-						// reloadTable();
+						$table.bootstrapTable('refresh');
 					} else {
 						layer.msg('資金調度失敗：' + response.message);
 					}
@@ -796,6 +796,42 @@
 			
 			return true;
 		}
+
+        var frontUrl = '<?=$frontUrl?>';
+
+        /*for transfer_quota*/
+        //點數全數轉回主帳戶
+        var return_to_main_account_flag = 1;
+        async function return_to_main_account(edit_cus_id){
+            if(return_to_main_account_flag == 0){
+                layer.msg('請稍候');
+            }else{	
+                
+                var bool = confirm(change_lang_txt({"org_txt" : "確定要將點數全數轉回主帳戶"}) + "?")
+                return_to_main_account_flag = 0;
+                if (bool){
+                    layer.msg('請稍候');
+                    return_to_main_account_flag = 1;
+
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=9&edit_cus_id='+edit_cus_id)
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=14&edit_cus_id='+edit_cus_id)
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=11&edit_cus_id='+edit_cus_id)
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=16&edit_cus_id='+edit_cus_id)
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=26&edit_cus_id='+edit_cus_id)
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=30&edit_cus_id='+edit_cus_id)
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=31&edit_cus_id='+edit_cus_id)
+                    fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=10&edit_cus_id='+edit_cus_id)
+                    await fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=34&edit_cus_id='+edit_cus_id)
+                    await fetch(frontUrl+'/api/gamebalance?pdisplay=return_to_main_account_for_game&game_store=33&edit_cus_id='+edit_cus_id)  
+
+                    $table.bootstrapTable('refresh');
+                    layer.msg('已完成');
+                }else{
+                    return_to_main_account_flag = 1;
+                }
+            }
+            
+        }
     </script>
 </body>
 

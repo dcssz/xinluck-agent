@@ -29,7 +29,7 @@
      <link href="/assets/layouts/layout/css/self-layout.css" rel="stylesheet" type="text/css" />        
      <link href="/assets/layouts/layout/css/themes/darkblue.min.css" rel="stylesheet" type="text/css" id="style_color" />        
      <link href="/assets/layouts/layout/css/custom.min.css" rel="stylesheet" type="text/css" />        <!-- END THEME LAYOUT STYLES -->        
-     <link href="/templates/css/style.css?cache=209" rel="stylesheet" type="text/css"/>		
+     <link href="/templates/css/style.css?cache=210" rel="stylesheet" type="text/css"/>		
      <link href="/templates/css/tw_style.css?cache=205" rel="stylesheet" type="text/css"/>                <!-- BEGIN PAGE FIRST SCRIPTS -->        
      <script src="/assets/global/plugins/jquery.min.js" type="text/javascript"></script>        <!-- END PAGE FIRST SCRIPTS -->        
      <link rel="shortcut icon" href="#"/>	
@@ -250,6 +250,23 @@ label{
 .info_log .td-r{
 	text-align: right;
 }
+
+.retreat-setting-table{
+	width: 100%;
+}
+.retreat-setting-table th{
+	background-color: #39a8a9;
+	color: #FFF;
+}
+.retreat-setting-table th, .retreat-setting-table td{
+	border: 1px solid #ccc;
+	text-align: center;
+	padding: 10px 0px;
+  width: 33%;
+}
+.retreat-setting-table .notice-txt{
+	color: red;
+}
 </style>
 <div class="page-bar">
 	<div class="act-group" id="top-save-btn-area">
@@ -261,12 +278,11 @@ label{
     <div>
     	<div class="type-btn-div">
         	<span class="hidden">總代理&nbsp;帳號:&nbsp;&nbsp;&nbsp;</span>
-            <button class="type-btn1 active" type="button" onClick="show_data_content(this, 'basic-info-area');">詳細資料</button>
+            <button class="type-btn1  <?=$btn_type=='basic-info-area'?'active':''?>" type="button" onClick="show_data_content(this, 'basic-info-area');">詳細資料</button>
             <!--button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?>" type="button" onclick="show_data_content(this, 'bank-info-area');">銀行信息</button-->
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?>" type="button" onClick="show_data_content(this, 'open-game-info-area');">開放遊戲設定</button>
-            <!--button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onClick="show_data_content(this, 'opt-occupy-info-area');">佔成設定</button>
-            <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onClick="show_data_content(this, 'retreat-occupy-info-area');">佔水設定</button>
-            <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group1-area');">體育設定</button>
+            <button class="type-btn1 <?=$btn_type=='retreat-info-area'?'active':''?> <?= $etype == 'add' ? 'hidden': ''?> " type="button" onClick="show_data_content(this, 'retreat-info-area');">退水佔成設定</button>
+            <!--button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group1-area');">體育設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group2-area');">彩票設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group3-area');">真人設定</button>
             <button class="type-btn1 <?= $etype == 'add' ? 'hidden': ''?> " type="button" onclick="show_data_content(this, 'gstore-group4-area');">電子設定</button>
@@ -275,15 +291,31 @@ label{
     </div>                  
 </div>
 <div id="page-content-mask"><img class="temp-waiting" src="/templates/images/loading.svg"></div>
-<div id="basic-info-area" class="data-content">
+<div id="basic-info-area" class="data-content  <?=$btn_type=='basic-info-area'?'':'hidden'?>">
     <!--slot=1-->
-<div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('basic-info')">儲存基本資料</button></div>
+<div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('basic-info')"><?= $etype == 'add' ? '下一步': '儲存基本資料'?></button></div>
 <form>
     <div class="portlet light bordered">
       <div class="portlet-body" >
         <!--slot=2-->
 <table class="table table-bordered basic-info-tb">
   <tbody>
+    <?php if ($edit_level==15 && $etype == 'add') {?>
+      <tr>
+        <td class="title">上级</td>
+        <td>
+          <div class="">
+          <select id="top_agent_id" name="top_agent_id" class="form-control input-inline" >
+              <!--slot=3-->
+              <?php foreach ($top_agents as $item) {?>
+              <option value="<?=$item->id?>" <?= $item->id == $top_cus_id ? 'selected': ''?>><?php echo $item->username . '('.$item->nickname.')'?></option>
+              <?php } ?>
+
+          </select>
+          </div>
+        </td>
+      </tr>
+    <?php } ?>
     <tr>             
       <td class="title"><?= $edit_level==15 ?'代理':'總代理'?>&nbsp;帳號</td>
       <td ><input name="customer_userid" type="text" value="<?=e($agent->username)?>" size="12" <?= $etype == 'edit' ? 'disabled': ''?>></td>
@@ -299,6 +331,30 @@ label{
     <tr>
       <td class="title"><?= $edit_level==15 ?'代理':'總代理'?>&nbsp;名稱</td>
       <td><input type="text" size="12" name ="customer_name" value="<?=e($agent->nickname)?>"></td>
+    </tr>
+    <?php if ($edit_level==15) {?>
+      <!--tr>
+        <td class="title">真人限紅組</td>
+        <td>
+          <input type="checkbox" id="checkAll"> 全選
+          <div>
+            <?php foreach ($userGroups as $item) { ?>
+              <label class="checkbox-inline">
+                <input class="user_group_id" type="checkbox" name="user_group_id[]" value="<?= $item->id ?>"
+                  <?= in_array($item->id, $agent->user_group_id ?? []) ? 'checked' : '' ?>>
+                <?= $item->content ?>
+              </label>
+            <?php } ?>
+          </div>
+        </td>
+      </tr-->
+    <?php } ?>
+    <tr>             
+      <td class="title">代理限制會員人數上限</td>
+      <td >
+        <input name="memberCount" type="text" value="<?=e($agent->memberCount)?>" size="12" >
+        <font class="color-red1">(填0為不限制)</font>
+      </td>
     </tr>
 	<tr>
       <td class="title">狀態設定</td>
@@ -333,7 +389,7 @@ label{
 		</label>	
 	  </td>
     </tr>
-    <tr>
+    <!--tr>
       <td class="title">代理端權限</td>
       <td>
 		<label>
@@ -343,53 +399,9 @@ label{
 			<input type="radio" name="has_control_perm" value="0" <?= $agent->has_control_perm == 0 ? 'checked': ''?>> 無權限
 		</label>	
 	  </td>
-    </tr>
-	<tr customer_type="1">
-      <td class="title">佣金規則</td>
-      <td>
-		<select name="commission_rule_id">
-			<option value="0">請選擇</option>
-			<!--slot=3-->
-
-            <?php foreach ($commissionRules as $item) {?>
-				<option value="<?= $item->id ?>" <?= $agent->commission_rule_id == $item->id ? 'selected': ''?>><?= $item->name?></option>
-			<?php }?>
-
-
-		</select>
-	  </td>
-    </tr>
-	<tr customer_type="1">
-      <td class="title">退水規則</td>
-      <td>
-		<select name="retreat_rule_id">
-			<option value="0">請選擇</option>
-			<!--slot=3-->
-           
-            <?php foreach ($retreatRules as $item) {?>
-				<option value="<?= $item->id ?>" <?= $agent->retreat_rule_id == $item->id ? 'selected': ''?>> <?= $item->name?></option>
-			<?php }?>
-
-
-		</select>
-	  </td>
-    </tr>
-	<tr customer_type="1" class="<?= $edit_level==15 ?'hide':''?>">
-      <td class="title">總輸贏規則</td>
-      <td>
-		<select name="extra_commission_rule_id">
-			<option value="0">請選擇</option>
-			<!--slot=3-->
-            <?php foreach ($extraCommissionRules as $item) {?>
-				<option value="<?= $item->id ?>" <?= $agent->extra_commission_rule_id == $item->id ? 'selected': ''?>> <?= $item->name?></option>
-			<?php }?>
-
-
-		</select>
-	  </td>
-    </tr>
+    </tr-->
 	
-    <tr>
+    <!--tr>
       <td class="title">金流手續費</td>
       <td>
         <input type="text" size="2" id ="fee-percent" name ="fee_percent" value="<?=e($agent->fee_percent)?>" onkeyup="check_error(this.id,this.value)">%
@@ -397,7 +409,7 @@ label{
         <span class="error-span" id="fee-percent-error"></span>
 		<span class="top-max-span" id="fee-percent-max-txt">≤100</span>
       </td>
-    </tr>
+    </tr-->
     <tr class="<?= $etype == 'add' ? 'hidden': ''?>">
       <td class="title">邀請碼</td>
       <td><input type="text" size="12" name ="invite_code" value="<?=e($agent->invite_code)?>" disabled="disabled"></td>
@@ -473,8 +485,48 @@ label{
 <div id="opt-occupy-info-area" class="data-content hidden">
     <div id="no-data"></div>
 </div>
-<div id="retreat-occupy-info-area" class="data-content hidden">
-    <div id="no-data"></div>
+<div id="retreat-info-area" class="data-content  <?=$btn_type=='retreat-info-area'?'':'hidden'?>">
+  <div class="hidden save-btn"><button class="btn btn-danger" type="button" onclick="save_customer('retreat-info')">儲存退水佔成設定</button></div>
+  <form>
+    <table class="retreat-setting-table">
+         <tr>
+					<th>遊戲廠商</th>
+					<th>退水設定(%)</th>
+					<th>佔成設定(%)</th>
+				</tr>
+        <tr>
+					<td></td>
+					<td>
+            真人退水:<input type="input" id="live_quick" name="live_quick"  style="width: 15%;">
+            <br>
+            <br>
+            電子退水:<input type="input" id="slot_quick" name="slot_quick"  style="width: 15%;">
+          </td>
+					<td>
+            真人佔成:<input type="input" id="live_extra_quick" name="live_extra_quick"  style="width: 15%;">
+            <br>
+            <br>
+            電子佔成::<input type="input" id="slot_extra_quick" name="slot_extra_quick"  style="width: 15%;">
+          </td>
+				</tr>
+      <?php foreach ($GameStoreTypes as $type) {?>
+        <?php foreach ($type->games as $game) {?>
+          <tr>
+            <td><?= $game->name ?></td>
+            <td>
+              <input type="input" max="<?= $parentRetreatRuleArray[$game->id]['percent'] ?>" <?= $type->type=='slot' ?'class="slot"':'' ?> <?= $type->type=='live' ?'class="live"':'' ?> name="retreat_game_arr[<?= $game->id ?>]" value="<?= $retreatRuleArray[$game->id]['percent'] ?>" style="width: 30%;">
+              (最大值:<?= $parentRetreatRuleArray[$game->id]['percent'] ?>)
+            </td>
+            <td>
+              <input type="input" max="<?= $parentExtraCommissionRuleArray[$game->id]['percent'] ?>" <?= $type->type=='slot' ?'class="slot_extra"':'' ?> <?= $type->type=='live' ?'class="live_extra"':'' ?> name="extra_commission_game_arr[<?= $game->id ?>]" value="<?= $extraCommissionRuleArray[$game->id]['percent'] ?>" style="width: 30%;">
+              (最大值:<?= $parentExtraCommissionRuleArray[$game->id]['percent'] ?>)
+            </td>
+          </tr>   
+        <?php } ?>
+      <?php } ?>
+      
+    </table>
+  </form>
 </div>
 <div id="gstore-group1-area" class="data-content hidden">
     <div id="no-data"></div>
@@ -508,7 +560,7 @@ label{
         <script src="/assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js" type="text/javascript"></script>
         <script src="/assets/global/plugins/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript"></script>
         <script src="/assets/global/plugins/jquery.blockui.min.js" type="text/javascript"></script>
-        <script src="/assets/global/plugins/uniform/jquery.uniform.min.js" type="text/javascript"></script>
+        <!--script src="/assets/global/plugins/uniform/jquery.uniform.min.js" type="text/javascript"></script-->
         <script src="/assets/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js" type="text/javascript"></script>
         <!-- END CORE PLUGINS -->
         <!-- BEGIN PAGE LEVEL PLUGINS -->
@@ -534,7 +586,63 @@ label{
 		<script src="/templates/js/kang_all.js?cache=203"></script>
 		<script src="/templates/js/lang/tw.js?cache=203"></script>
         <script src="/templates/js/bank.js" type="text/javascript"></script>
-<script src="/templates/js/agent_info/editor.js?cache=147" type="text/javascript"></script>
+      <script src="/templates/js/agent_info/editor.js?cache=147" type="text/javascript"></script>
+      <script>
+          $(function(){
+            
+            $('#live_quick').on('input', function() {
+              let newValue = $(this).val();
+              $('.live').each(function() {
+                let max = $(this).attr('max');   // 讀取每個輸入框的 max 屬性
+                let val = newValue;
+                if (max !== '-' && Number(val) > Number(max)) {
+                  val = max; // 超過最大值就改成最大值
+                }
+                $(this).val(val);
+              });
+            });
+            $('#slot_quick').on('input', function() {
+              let newValue = $(this).val();
+              $('.slot').each(function() {
+                let max = $(this).attr('max');   // 讀取每個輸入框的 max 屬性
+                let val = newValue;
+                if (max !== '-' && Number(val) > Number(max)) {
+                  val = max; // 超過最大值就改成最大值
+                }
+                $(this).val(val);
+              });
+            });
+            $('#live_extra_quick').on('input', function() {
+              let newValue = $(this).val();
+              $('.live_extra').each(function() {
+                let max = $(this).attr('max');   // 讀取每個輸入框的 max 屬性
+                let val = newValue;
+                if (max !== '-' && Number(val) > Number(max)) {
+                  val = max; // 超過最大值就改成最大值
+                }
+                $(this).val(val);
+              });
+            });
+            $('#slot_extra_quick').on('input', function() {
+              let newValue = $(this).val();
+              $('.slot_extra').each(function() {
+                let max = $(this).attr('max');   // 讀取每個輸入框的 max 屬性
+                let val = newValue;
+                if (max !== '-' && Number(val) > Number(max)) {
+                  val = max; // 超過最大值就改成最大值
+                }
+                $(this).val(val);
+              });
+            });
+            //改變上方儲存按鈕
+            change_save_btn_area('<?=$btn_type?>');
 
+            // 點擊「全選」時，勾選或取消所有子項目
+            $('#checkAll').on('change', function() {
+              console.log($(this).prop('checked'))
+              $('.user_group_id').prop('checked', $(this).prop('checked'));
+            });
+          });
+      </script>
     </body>
 </html>

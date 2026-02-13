@@ -125,6 +125,7 @@ class App extends \Slim\App {
 			$this->any('/agent/agent_quota_log_op', \App\Controllers\Admin\Report::class . ':agentQuotaLog');
 			$this->get('/agent/all_calc_report_manager', \App\Controllers\Admin\Report::class . ':allCalcReportManager');
 			$this->get('/agent/all_calc_agent_report_manager', \App\Controllers\Admin\Report::class . ':allCalcAgentReportManager');
+			$this->get('/agent/all_calc_agent_report_manager_v2', \App\Controllers\Admin\Report::class . ':allCalcAgentReportManagerV2');
 			$this->get('/agent/game_report_manager', \App\Controllers\Admin::class . ':gameReportManager');
 			$this->get('/agent/cus_instant_bet_info_manager', \App\Controllers\Admin::class . ':cusInstantBetInfoManager');
 			$this->get('/agent/cus_bet_info_manager', \App\Controllers\Admin::class . ':cusBetInfoManager');

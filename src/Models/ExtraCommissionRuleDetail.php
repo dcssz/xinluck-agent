@@ -16,8 +16,8 @@ Class ExtraCommissionRuleDetail extends Model
         return [];
     }
 
-    public function gameStores()
+    public function games()
     {
-        return $this->belongsToMany('App\Models\GameStore', 'extra_commission_rule_detail_game_store', 'extra_commission_rule_detail_id', 'game_store_id')->withPivot('percent');
+        return $this->belongsToMany('App\Models\Game', 'extra_commission_rule_detail_game', 'extra_commission_rule_detail_id', 'game_id')->withPivot('percent');
     }
 }

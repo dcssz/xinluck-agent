@@ -166,10 +166,18 @@ $(function(){
 
     </li>
     <?php } ?>
-    <li class="nav-item ">
+    <!--li class="nav-item ">
         <a href="javascript:void(0);" class="nav-link " title_name="總報表" onclick="show_page(this, 'all_calc_report_manager', '/agent/all_calc_report_manager')">
             <i class=""></i>
             <span class="title">總報表</span>
+
+        </a>
+
+    </li-->
+    <li class="nav-item ">
+        <a href="javascript:void(0);" class="nav-link " title_name="代理報表V2" onclick="show_page(this, 'all_calc_agent_report_manager_v2', '/agent/all_calc_agent_report_manager_v2')">
+            <i class=""></i>
+            <span class="title">代理報表V2</span>
 
         </a>
 
@@ -220,14 +228,14 @@ $(function(){
 
     </li>
 
-    <li class="nav-item ">
+    <!--li class="nav-item ">
         <a href="javascript:void(0);" class="nav-link " title_name="團隊報表" onclick="show_page(this, 'team_report_manager', '/agent/team_report_manager')">
             <i class=""></i>
             <span class="title">團隊報表</span>
 
         </a>
 
-    </li>
+    </li-->
 
      
 </ul>

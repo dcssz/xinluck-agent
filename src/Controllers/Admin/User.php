@@ -26,6 +26,9 @@ use App\Models\WithdrawAudit;
 use App\Models\Withdraw;
 use App\Models\DepositOrder;
 use App\Models\Bet;
+use App\Models\UserGroup;
+use App\Models\RetreatRule as RetreatRuleModel;
+use App\Models\RetreatRuleDetail as RetreatRuleDetailModel;
 
 class User extends AdminBase
 {
@@ -80,6 +83,7 @@ class User extends AdminBase
 		$top_cus_id = isset($get["top_cus_id"]) ? $get["top_cus_id"] : $_SESSION['id'];
 		$user = UserModel::find($top_cus_id);
 		$agent = UserModel::find($_SESSION['id']);
+		$frontUrl = Config::where('name','baseUrl')->pluck('value')->first();
 
         return $this->view->render('cus_info_manager', [
 			"cusGrades" => $cusGrades,
@@ -88,6 +92,7 @@ class User extends AdminBase
 			"top_cus_id" => $top_cus_id,
 			"user" => $user,
 			"agent" => $agent,
+			'frontUrl' => $frontUrl
 		]);
 	}
  
@@ -183,32 +188,45 @@ class User extends AdminBase
 			$field = 'created_at';
 		}
 
-		$where[] = array('parents', 'like','%/'.$get['top_cus_id'].'/%');
+		if ($get['top_cus_id'] == $_SESSION['id']) {
+			//查看自己 列出所有線下
+			$where[] = array('parents', 'like','%/'.$get['top_cus_id'].'/%');
+		} else {
+			$where[] = array('pid', $get['top_cus_id']);
+		}
+		
 		 
 		$order = $get['search_order_by'];
 		 
-		$datas = UserModel::with('cusGrade', 'cusMark')->where($where)->whereIn('role', ['customer', 'agent'])->offset($offset)->take($limit)->orderBy('id', $order)->get();
-		$count = UserModel::where($where)->whereIn('role', ['customer', 'agent'])->count();
+		$datas = UserModel::with('cusGrade', 'cusMark')->where($where)->whereIn('role', ['customer'])->offset($offset)->take($limit)->orderBy('id', $order)->get();
+		$count = UserModel::where($where)->whereIn('role', ['customer'])->count();
 		$frontUrl = Config::where('name','frontUrl')->pluck('value')->first();
+		$frontUrl .= '/register';
 		$min = collect($datas)->min('level');
 		$result = array();
 		foreach($datas as $data){
-			if ($data->level == $min) {
+			/*if ($data->level == $min) {
 				$data->pid = 0;
-			}
+			}*/
 			$data->amout_in_total = DepositOrder::where('user_id', $data->id)->where('status', 100)->sum('apply_amount');
 			$data->amout_out_total = Withdraw::where('user_id', $data->id)->where('status', 100)->sum('amount');
 			$data->bet_total = Bet::where('user_id', $data->id)->sum('valid_amount');
 			$data->invite_count = UserModel::where('role', 'customer')->where('pid', $data->id)->count();
-			$data->invite_code_url = "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
-
+			//$data->invite_code_url = "<span>{$data->invite_code}</span><br><a href='javascript:void(0);' onclick='copy_link(this);'>{$frontUrl}?invite_code={$data->invite_code}</a>";
+			$data->invite_code_url = "";
 			$action = "<div class=\"paction-btn-div\">\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"javascript:void(0);\" onclick=\"show_qr_code('{$frontUrl}?invite_code={$data->invite_code}');\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> QR code </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"cus_info_editor?etype=edit&edit_cus_id={$data->id}\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+			if ($_SESSION['isChild'] == 0) {
+				$action .= "<a href=\"cus_info_editor?etype=edit&edit_cus_id={$data->id}\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 資料 </a>\n\t\t\t\t\t\t\t\t";
+			}
 			$action .= "<a href=\"cus_instant_bet_info_manager?search_customer_userid={$data->username}&search_level=16&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 投注 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_report_manager?search_customer_userid={$data->username}&search_level=16&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 報表 </a>\n\t\t\t\t\t\t\t\t";
 			$action .= "<a href=\"cus_quota_log_manager?search_customer_userid={$data->username}&is_back=1\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 日誌 </a>\n\t\t\t\t\t\t\t\t";
-			$action .= "<a href=\"javascript:void(0);\" onclick=\"show({$data->id});\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 調額 </a>\n\t\t\t\t\t\t\t\t";
+			$action .= "<a href=\"cus_info_log_list?user_id={$data->id}&is_back=1\"  class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 修改歷程 </a>\n\t\t\t\t\t\t\t\t";
+			if ($_SESSION['isChild'] == 0) {
+				$action .= "<a href=\"javascript:void(0);\" onclick=\"show({$data->id});\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 調額 </a>\n\t\t\t\t\t\t\t\t";
+				$action .= "<a href=\"javascript:void(0);\" onclick=\"return_to_main_account({$data->id});\" class=\"btn btn-xs default\"> <i class=\"fa fa-pencil\"></i> 取回主帳 </a>\n\t\t\t\t\t\t\t\t";
+			}
 			$action .= "</div>";
 
 			$data->action = $action;
@@ -301,6 +319,8 @@ class User extends AdminBase
 		//详细资料------------------------------------------
 		$GameStoreTypes = array();
 		$user_open_game_ids = array();
+		$retreatRuleArray = array();
+		$parentRetreatRuleArray = array();
 		if ($etype  == 'edit') {
 			//编辑
 			$user = UserModel::find($edit_cus_id);
@@ -314,7 +334,44 @@ class User extends AdminBase
 			$GameStoreTypes = GameStoreTypeModel::with('games')->get();
 			$user_open_game_ids = $user->games()->pluck('game_id')->toArray();
 			 
-		
+			//parent退水設定 (整理成前台好用的)
+			$games = Game::get();
+			$parentRetreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $top_cus_id)->orderBy('init_date', 'desc')->first();
+			if ($parentRetreatRule) {
+				foreach ($games as $game) {
+					foreach ($parentRetreatRule['ruleDetailsGames'] as $item) {
+						if ($game->id == $item->game_id) {
+							$parentRetreatRuleArray[$game->id] = ['percent' => $item['percent']];
+						}
+					}
+				}
+			} else {
+				foreach ($games as $game) {
+					if ($top_cus_id == 0 || $top_cus_id == 1) {
+						//沒有上層或上層是管理員
+						$parentRetreatRuleArray[$game->id] = ['percent' => '-'];
+					} else {
+						$parentRetreatRuleArray[$game->id] = ['percent' => 0];
+					}
+					
+				}
+			}
+			//退水設定 (整理成前台好用的)
+			$games = Game::get();
+			$retreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $edit_cus_id)->orderBy('init_date', 'desc')->first();
+			if ($retreatRule) {
+				foreach ($games as $game) {
+					foreach ($retreatRule['ruleDetailsGames'] as $item) {
+						if ($game->id == $item->game_id) {
+							$retreatRuleArray[$game->id] = ['percent' => $item['percent']];
+						}
+					}
+				}
+			} else {
+				foreach ($games as $game) {
+					$retreatRuleArray[$game->id] = ['percent' => 0];
+				}
+			}
 		} else  {
 			//新增
 			$user = new UserModel;
@@ -322,23 +379,38 @@ class User extends AdminBase
 		}
 		
 		$cusMarks = CusMarkModel::all();
+
+		//可用真人限紅組 從上層來判斷
+		$parent = UserModel::find($top_cus_id);
+		if ($parent->role == 'topagent') {
+			$userGroups = UserGroup::all();
+		} else {
+			$user_group_ids = explode(',', $parent->user_group_id);
+			$userGroups = UserGroup::whereIn('id', $user_group_ids)->get();
+		}
+		
 		
 		//第三方账号及钱包余额--------------------------------
 		$games = Game::with(["gameUser" => function ($query) use ($edit_cus_id) {
 				$query->where('user_id', $edit_cus_id)->first();
 			}])->where('status',1)->get();
 		// return $response->withJson($result);
+
+
         return $this->view->render('cus_info_editor', [
 			'btn_type'=>$btn_type,
 			'user'=>$user,
 			'etype'=>$etype,
 			'title'=>'editor',
 			"cusMarks" => $cusMarks,
+			"userGroups" => $userGroups,
 			"top_cus_id" => $top_cus_id,
 			"balanceHtml" => $balanceHtml,
 			'games'=>$games,
 			"GameStoreTypes" => $GameStoreTypes,
 			"user_open_game_ids" => $user_open_game_ids,
+			"parentRetreatRuleArray" => $parentRetreatRuleArray,
+			"retreatRuleArray" => $retreatRuleArray,
 		]);
 	}
 	
@@ -452,7 +524,7 @@ class User extends AdminBase
 		$save_type = $post['save_type'];
 		
 		if ($save_type == 'basic-info') {
-			
+			$editInfo = '';
 			
 			if($etype == 'edit'){
 				$user = UserModel::find($id);
@@ -466,6 +538,7 @@ class User extends AdminBase
 						return $response->withJson($msg);
 					}
 					$user->password = crypt($post['customer_pass1'], '$1$' . substr(md5($user->username), 5, 8));
+					$editInfo .= _('修改密碼').'<br>';
 				}
 				$user->role = $post['role'];
 				
@@ -496,7 +569,7 @@ class User extends AdminBase
 					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'11\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
 					return $response->withJson($msg);
 				}
-				if ($post['cell_phone'] == '') {
+				/*if ($post['cell_phone'] == '') {
 					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\"请输入手机号码\");page_content_mask_hide();"}]}}');
 					return $response->withJson($msg);
 				}
@@ -504,7 +577,7 @@ class User extends AdminBase
 				if ($exist) {
 					$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'21\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
 					return $response->withJson($msg);
-				}
+				}*/
 				$user->username = $post['customer_userid'];
 				$user->password = crypt($post['customer_pass1'], '$1$' . substr(md5($post['customer_userid']), 5, 8));
 
@@ -520,20 +593,66 @@ class User extends AdminBase
 				$user->level = $top_parent->level + 1;
 				
 				$user->role = "customer";
-			}
 
-			
+				//檢查代理會員人數上限
+				if ($top_parent->memberCount > 0) {
+					$memberCount = UserModel::where('pid', $top_parent->id)->where('role', 'customer')->count();
+					if ($memberCount >= $top_parent->memberCount) {
+						$msgText = '超過代理會員人數上限';
+						$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\'' . $msgText . '\', {\"target\":\"kangAgentInfoEditor\"});page_content_mask_hide();"}]}}');
+						return $response->withJson($msg);
+					}
+				}
+			}
+			if($user->nickname != $post['customer_name'])$editInfo .= _('修改昵稱').'<br>';
 			$user->nickname = $post['customer_name'];
+
+			if($user->valid != $post['customer_status']){
+				if($post['customer_status'] == '1')
+					$editInfo .= _('狀態:啟用').'<br>';
+				elseif($post['customer_status'] == '2')
+					$editInfo .= _('狀態:停押').'<br>';
+				elseif($post['customer_status'] == '3')
+					$editInfo .= _('狀態:鎖定').'<br>';
+				elseif($post['customer_status'] == '4')
+					$editInfo .= _('狀態:停用').'<br>';
+			}
 			$user->valid = $post['customer_status'];
+
+			/*if($user->user_group_id != $post['user_group_id']) $editInfo .= _('真人限紅組').':'.$post['user_group_id'].'<br>';
+			$user->user_group_id = $post['user_group_id'];
+
+			if($user->live_balance_max != $post['live_balance_max']) $editInfo .= _('真人餘額上限').':'.$post['live_balance_max'].'<br>';
+			$user->live_balance_max = $post['live_balance_max'];
+
+			if($user->slot_balance_max != $post['slot_balance_max']) $editInfo .= _('電子餘額上限').':'.$post['slot_balance_max'].'<br>';
+			$user->slot_balance_max = $post['slot_balance_max'];*/
+
+			if($user->cus_mark_id != $post['mark_id']) $editInfo .= _('標籤設定').':'.$post['mark_id'].'<br>';
 			$user->cus_mark_id = $post['mark_id'];;
+
+			if($user->birthday != $post['birthday'])$editInfo .= _('生日').':'.$post['birthday'].'<br>';
 			$user->birthday = $post['birthday'];
-			$user->mobile = $post['cell_phone'];
+
+			if($user->email != $post['email'])$editInfo .= _('信箱').':'.$post['email'].'<br>';
 			$user->email = $post['email'];
+
+			if($user->line_id != $post['line'])$editInfo .= _('Line').':'.$post['line'].'<br>';
 			$user->line_id = $post['line'];
+
+			if($user->telegram != $post['telegram'])$editInfo .= _('telegram').':'.$post['telegram'].'<br>';
 			$user->telegram = $post['telegram'];
+
+			if($user->instagram != $post['instagram'])$editInfo .= _('instagram').':'.$post['instagram'].'<br>';
 			$user->instagram = $post['instagram'];
+
+			if($user->qq != $post['qq'])$editInfo .= _('qq').':'.$post['qq'].'<br>';
 			$user->qq = $post['qq'];
+
+			if($user->wechat != $post['wechat'])$editInfo .= _('wechat').':'.$post['wechat'].'<br>';
 			$user->wechat = $post['wechat'];
+
+			if($user->note != $post['notes'])$editInfo .= _('修改備註').':'.$post['notes'].'<br>';
 			$user->note = $post['notes'];
 			
 			$user->save();
@@ -544,13 +663,20 @@ class User extends AdminBase
 				$user->save();
 				$user->games()->sync(Game::pluck('id')->all());
 
-				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
+				//跳轉退水設定頁面
+				$result = [];
+				$result['root']['ajaxdata'][] = [
+					'spanid' => 'javascript',
+					'rtntext' => 'location.href = "cus_info_editor?etype=edit&edit_cus_id='.$user->id. '&btn_type=retreat-info-area' .'";page_content_mask_hide();',
+				];
+				return $response->withJson($result);
+				//$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-1\', {\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
 			} else {
 				
-			 
-				$userLog = new UserLog;
-				$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],'修改資料');
-				
+				if ($editInfo) {
+					$userLog = new UserLog;
+					$userLog->saveLog($id,1,'修改資料',$_SESSION['username'],$editInfo);
+				}
 				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangCusInfoEditor\"}));page_content_mask_hide();"}]}}');
 			}
 			return $response->withJson($msg);
@@ -564,6 +690,83 @@ class User extends AdminBase
 
 			$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
 			return $response->withJson($msg);
+		} elseif ($save_type == 'retreat-info') {
+			//取得下個周日的日期
+			$init_date = Functions::getNextSundayDate();
+
+			//退水设定
+			$retreat_game_arr = $post['retreat_game_arr'];
+
+			//檢查有沒有超過上層
+			$user = UserModel::find($id);
+			$checkResult = $user->checkRetreatRuleNotExceedParent($retreat_game_arr);
+		
+			if (!$checkResult['success']) {
+				$msgText = $checkResult['message'];
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\'' . $msgText . '\', {\"target\":\"kangAgentInfoEditor\"});page_content_mask_hide();"}]}}');
+				return $response->withJson($msg);
+			}
+
+			$hasRetreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $id)->count();
+			if ($hasRetreatRule == 0) {
+				//首次新增
+				$data = new RetreatRuleModel;
+				$data->user_id = $id;
+				$data->init_date = null;
+				$data->operator = $_SESSION['username'];
+				$data->save();
+			} else {
+				//後續修改 
+				$retreatRule = RetreatRuleModel::with('ruleDetailsGames')->where('user_id', $id)->where('init_date', $init_date)->first();
+				if ($retreatRule == null) {
+					$data = new RetreatRuleModel;
+					$data->user_id = $id;
+					$data->init_date = $init_date;
+				} else {
+					$data = $retreatRule;
+					//先清除旧数据
+					$details = RetreatRuleDetailModel::where('retreat_rule_id', $data->id)->get();
+					if ($details) {
+						foreach ($details as $item) {
+							$item->games()->detach();
+							$item->delete();
+						}
+					}
+				}
+				$data->operator = $_SESSION['username'];
+				$data->save();
+			}
+			//新設計用不到 直接設0
+			$detail = new RetreatRuleDetailModel();
+			$detail->retreat_rule_id = $data->id;
+			$detail->lower_limit = 0;
+			$detail->upper_limit = 0;
+			$detail->effect_cus_num = 0;
+			$detail->save();
+			
+			$editInfo = '退水值:<br>';
+			foreach ($retreat_game_arr as $game_id => $number) {
+				if (!$number) {
+					$number = 0;
+				}
+				$detail->games()->attach($game_id, ['percent' => $number]);
+
+				$game = Game::find($game_id);
+				$editInfo .= $game->name .':' . $number .'<br>';
+			}
+			$userLog = new UserLog;
+			$userLog->saveLog($id,1,'設定退水',$_SESSION['username'],$editInfo);
+
+			if ($hasRetreatRule == 0) {
+				//首次新增
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(show_msg(\'-2\', {\"m1\":\"\\u57fa\\u672c\\u8cc7\\u6599\",\"target\":\"kangAgentInfoEditor\"}));page_content_mask_hide();"}]}}');
+				return $response->withJson($msg);
+			} else {
+				//後續修改
+				$msgText = '儲存成功'.$init_date .' 12:00開始生效';
+				$msg = json_decode('{"root":{"ajaxdata":[{"spanid":"javascript","rtntext":"pop_msg(\'' . $msgText . '\', {\"target\":\"kangAgentInfoEditor\"});page_content_mask_hide();"}]}}');
+				return $response->withJson($msg);
+			}
 		}
 	}
 

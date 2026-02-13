@@ -19,6 +19,10 @@ Class Bet extends Model
 	public function game(){
 		return $this->belongsTo('App\Models\Game','game_id','id');
 	}
+
+	public function gameSub(){
+		return $this->belongsTo('App\Models\GameSub','game_sub_id','id');
+	}
 	
 	public function user(){
 		return $this->belongsTo('App\Models\User','user_id','id');
