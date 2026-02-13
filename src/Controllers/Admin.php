@@ -31,6 +31,8 @@ use App\Models\Withdraw;
 use App\Models\GameStoreType;
 
 use App\Extensions\Util;
+use App\Models\Game;
+
 class Admin extends AdminBase
 {
 	public function __Construct(ContainerInterface $container)
