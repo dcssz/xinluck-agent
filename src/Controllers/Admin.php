@@ -261,7 +261,7 @@ class Admin extends AdminBase
 		$where[]=array('password',$password);
 		$where[]=array('role', '!=','admin');
 		$where[]=array('role', '!=','customer');
-        $user = User::select('id','username','nickname','role','valid','parentUid')->where($where)->first();
+        $user = User::select('id','username','nickname','role','valid','parentUid', 'allow_ip')->where($where)->first();
 
 		if($user == null){
 			
@@ -285,6 +285,16 @@ class Admin extends AdminBase
 		}
 		 
 		
+		//检测IP白名单
+		// $userIp = UserIp::where('ip', Util::ip())->where('user_id',$user->id)->orderBy('id','desc')->first();
+		$allow = explode(',', $user->allow_ip);
+		$allow = array_filter($allow, function ($e) {
+			return trim($e) != '';
+		});
+		if (count($allow) > 0 && !in_array(Util::ip(), $allow)) {
+			$ajaxdata =  '<script>alert("不在IP白名單列表,請聯繫管理員");history.back();</script>';//['spanid'=>'javascript','rtntext'=>"alert('帐密有误')"];
+			die($ajaxdata);
+		}
 		if($userIp == null){
 			$userIp = new UserIp;
 			$userIp->user_id = $user->id;
